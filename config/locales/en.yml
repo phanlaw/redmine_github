@@ -26,6 +26,9 @@ en:
   error_redmine_github_oauth_user_fetch_failed: Failed to fetch GitHub user info.
   label_github_sprint_stats: GitHub Sprint Stats
   label_github_prs_merged: PRs Merged
+  label_github_metrics: GitHub Metrics
+  label_github_metrics_desc: GitHub activity aggregated per sprint
+  label_github_metrics_no_repos: No GitHub repositories linked to this project.
   label_github_prs_open: open
   label_github_contributors: Contributors
   label_github_avg_cycle_time: Avg Cycle Time

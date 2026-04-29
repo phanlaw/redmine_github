@@ -12,3 +12,7 @@ namespace :redmine_github do
   get 'repos', as: 'repos', to: 'oauth#repos'
   get 'orgs',  as: 'orgs',  to: 'oauth#orgs'
 end
+
+scope '/projects/:project_id', module: 'redmine_github' do
+  get 'github_metrics', as: 'project_github_metrics', to: 'github_metrics#index'
+end
