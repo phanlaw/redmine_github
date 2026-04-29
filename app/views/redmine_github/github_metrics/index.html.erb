@@ -25,6 +25,8 @@
         <th class="github-col"><%= l(:label_github_avg_cycle_time) %></th>
         <th class="github-col"><%= l(:label_github_review_time) %></th>
         <th class="github-col"><%= l(:label_github_issues_with_pr) %></th>
+        <th class="github-col"><%= l(:label_github_deploys) %></th>
+        <th class="github-col"><%= l(:label_github_deploy_frequency) %></th>
       </tr>
     </thead>
     <tbody>
@@ -53,6 +55,8 @@
           <td class="github-col"><%= s[:avg_cycle_time_hours] ? "#{s[:avg_cycle_time_hours]}h" : '—' %></td>
           <td class="github-col"><%= s[:avg_review_time_hours] ? "#{s[:avg_review_time_hours]}h" : '—' %></td>
           <td class="github-col"><%= s[:issues_with_pr].positive? ? "#{s[:issues_with_pr]} / #{total}" : '—' %></td>
+          <td class="github-col"><%= s[:deploy_count].positive? ? s[:deploy_count] : '—' %></td>
+          <td class="github-col"><%= s[:deploy_frequency] ? "#{s[:deploy_frequency]}/wk" : '—' %></td>
         </tr>
       <% end %>
     </tbody>
