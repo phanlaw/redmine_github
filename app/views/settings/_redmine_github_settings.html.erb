@@ -5,4 +5,19 @@
   <%= hidden_field_tag("settings[webhook_use_hostname]", 0, :id => nil) %>
   <%= check_box_tag("settings[webhook_use_hostname]", 1, @settings['webhook_use_hostname'].to_s != '0') %>
   </p>
+  <p>
+    <label><%= t('setting_github_oauth_client_id') %></label>
+    <%= text_field_tag("settings[github_oauth_client_id]", @settings['github_oauth_client_id'], size: 50) %>
+  </p>
+  <p>
+    <label><%= t('setting_github_oauth_client_secret') %></label>
+    <%= password_field_tag("settings[github_oauth_client_secret]", @settings['github_oauth_client_secret'].present? ? ('x' * 20) : '',
+          size: 50,
+          onfocus: "this.value=''; this.name='settings[github_oauth_client_secret]';",
+          onchange: "this.name='settings[github_oauth_client_secret]';") %>
+  </p>
+  <p class="description">
+    Register a GitHub OAuth App at <a href="https://github.com/settings/developers" target="_blank">github.com/settings/developers</a>.
+    Set the Authorization callback URL to: <code><%= redmine_github_oauth_callback_url %></code>
+  </p>
 </fieldset>

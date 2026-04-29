@@ -1,42 +1,217 @@
-<p>
-  <%=
-    form.text_field(
-      :url,
-      label: l(:field_url),
-      size: 60,
-      required: true,
-      disabled: !repository.safe_attribute?('url')
-    )
-  %>
-  <%= scm_path_info_tag(repository) %>
-</p>
-<p>
-  <%=
-    form.password_field(
-      :access_token,
-      label: l(:label_github_token),
-      size: 30,
-      name: 'ignore',
-      required: true,
-      value: (repository.new_record? || repository.access_token.blank? ? '' : ('x' * 15)),
-      onfocus: "this.value=''; this.name='repository[access_token]';",
-      onchange: "this.name='repository[access_token]';"
-    )
-  %>
-</p>
-<p>
-  <%=
-    form.password_field(
-      :webhook_secret,
-      label: l(:label_github_webhook_secret),
-      size: 30,
-      name: 'ignore',
-      required: true,
-      value: (repository.new_record? || repository.webhook_secret.blank? ? '' : ('x' * 15)),
-      onfocus: "this.value=''; this.name='repository[webhook_secret]';",
-      onchange: "this.name='repository[webhook_secret]';"
-    )
-  %>
-</p>
+<%
+  github_token = GithubUserToken.find_by(user_id: User.current.id)
+  oauth_configured = ::Setting.plugin_redmine_github['github_oauth_client_id'].present?
+  use_picker = github_token && oauth_configured && repository.new_record?
+%>
+
+<% if oauth_configured %>
+  <div id="github-oauth-section" style="margin-bottom: 1em; padding: 0.75em; background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px;">
+    <% if github_token %>
+      <strong><%= l(:label_github_connected_as, login: github_token.github_login) %></strong>
+      &nbsp;
+      <%= link_to l(:label_github_disconnect),
+            redmine_github_oauth_disconnect_path,
+            data: { method: 'post' },
+            rel: 'nofollow',
+            style: 'font-size: 0.85em;' %>
+    <% else %>
+      <%= link_to l(:label_github_connect_account),
+            redmine_github_oauth_authorize_path(return_to: request.url),
+            class: 'button' %>
+    <% end %>
+  </div>
+<% end %>
+
+<% if use_picker %>
+  <%# Hidden inputs always submitted — picker and manual mode both write to these %>
+  <%= hidden_field_tag 'repository[url]',            '', id: 'picker-url' %>
+  <%= hidden_field_tag 'repository[access_token]',   '', id: 'picker-access-token' %>
+  <%= hidden_field_tag 'repository[webhook_secret]', '', id: 'picker-webhook-secret' %>
+
+  <div id="github-picker" style="margin-bottom: 1em;">
+    <p>
+      <label><strong><%= l(:label_github_select_account) %></strong></label>
+      <select id="github-org-select" style="min-width: 200px;">
+        <option value=""><%= l(:label_github_loading) %></option>
+      </select>
+    </p>
+    <p id="github-repo-row" style="display:none;">
+      <label><strong><%= l(:label_github_select_repo) %></strong></label>
+      <select id="github-repo-select" style="min-width: 300px;">
+        <option value=""><%= l(:label_github_loading) %></option>
+      </select>
+    </p>
+    <p>
+      <label>
+        <input type="checkbox" id="github-manual-toggle"> <%= l(:label_github_or_enter_manually) %>
+      </label>
+    </p>
+  </div>
+<% end %>
+
+<div id="github-manual-fields"<% if use_picker %> style="display:none;"<% end %>>
+  <% unless use_picker %>
+    <p>
+      <%=
+        form.text_field(
+          :url,
+          label: l(:field_url),
+          size: 60,
+          required: true,
+          disabled: !repository.safe_attribute?('url')
+        )
+      %>
+      <%= scm_path_info_tag(repository) %>
+    </p>
+    <p>
+      <%=
+        form.password_field(
+          :access_token,
+          label: l(:label_github_token),
+          size: 30,
+          name: 'ignore',
+          required: true,
+          value: (repository.new_record? || repository.access_token.blank? ? '' : ('x' * 15)),
+          onfocus: "this.value=''; this.name='repository[access_token]';",
+          onchange: "this.name='repository[access_token]';"
+        )
+      %>
+    </p>
+    <p>
+      <%=
+        form.password_field(
+          :webhook_secret,
+          label: l(:label_github_webhook_secret),
+          size: 30,
+          name: 'ignore',
+          required: true,
+          value: (repository.new_record? || repository.webhook_secret.blank? ? '' : ('x' * 15)),
+          onfocus: "this.value=''; this.name='repository[webhook_secret]';",
+          onchange: "this.name='repository[webhook_secret]';"
+        )
+      %>
+    </p>
+  <% else %>
+    <%# In picker mode, manual fields write to the hidden inputs above %>
+    <p>
+      <label><%= l(:field_url) %> <span class="required">*</span></label>
+      <input type="text" id="manual-url" size="60"
+             placeholder="https://github.com/owner/repo.git"
+             oninput="document.getElementById('picker-url').value = this.value;">
+    </p>
+    <p>
+      <label><%= l(:label_github_token) %> <span class="required">*</span></label>
+      <input type="password" id="manual-access-token" size="30"
+             oninput="document.getElementById('picker-access-token').value = this.value;">
+    </p>
+    <p>
+      <label><%= l(:label_github_webhook_secret) %> <span class="required">*</span></label>
+      <input type="password" id="manual-webhook-secret" size="30"
+             oninput="document.getElementById('picker-webhook-secret').value = this.value;">
+    </p>
+  <% end %>
+</div>
+
 <%= scm_path_encoding_tag(form, repository) %>
 <p><%= form.check_box(:report_last_commit, label: l(:label_git_report_last_commit)) %></p>
+
+<% if use_picker %>
+<script>
+(function() {
+  var orgsUrl  = '<%= redmine_github_orgs_path %>';
+  var reposUrl = '<%= redmine_github_repos_path %>';
+  var oauthToken = '<%= j github_token.access_token %>';
+
+  var orgSelect    = document.getElementById('github-org-select');
+  var repoRow      = document.getElementById('github-repo-row');
+  var repoSelect   = document.getElementById('github-repo-select');
+  var manualToggle = document.getElementById('github-manual-toggle');
+  var manualFields = document.getElementById('github-manual-fields');
+  var pickerDiv    = document.getElementById('github-picker');
+
+  var hiddenUrl    = document.getElementById('picker-url');
+  var hiddenToken  = document.getElementById('picker-access-token');
+  var hiddenSecret = document.getElementById('picker-webhook-secret');
+
+  function randomHex(len) {
+    var arr = new Uint8Array(len / 2);
+    window.crypto.getRandomValues(arr);
+    return Array.from(arr).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+
+  function loadOrgs() {
+    fetch(orgsUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        orgSelect.innerHTML = '<option value="">-- select --</option>';
+        data.forEach(function(o) {
+          var opt = document.createElement('option');
+          opt.value = o.login;
+          opt.textContent = o.login + (o.type === 'Organization' ? ' (org)' : '');
+          orgSelect.appendChild(opt);
+        });
+      });
+  }
+
+  function loadRepos(org) {
+    repoSelect.innerHTML = '<option value="">-- loading --</option>';
+    repoRow.style.display = '';
+    fetch(reposUrl + '?org=' + encodeURIComponent(org), { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        repoSelect.innerHTML = '<option value="">-- select repo --</option>';
+        data.forEach(function(r) {
+          var opt = document.createElement('option');
+          opt.value = r.clone_url;
+          opt.textContent = r.name + (r.private ? ' (private)' : '');
+          opt.dataset.fullName = r.full_name;
+          repoSelect.appendChild(opt);
+        });
+      });
+  }
+
+  orgSelect.addEventListener('change', function() {
+    if (this.value) {
+      loadRepos(this.value);
+    } else {
+      repoRow.style.display = 'none';
+    }
+  });
+
+  repoSelect.addEventListener('change', function() {
+    var opt = this.options[this.selectedIndex];
+    if (!opt || !opt.value) return;
+
+    hiddenUrl.value    = opt.value;
+    hiddenToken.value  = oauthToken;
+    hiddenSecret.value = randomHex(32);
+
+    // auto-fill identifier from repo name
+    var identifierField = document.getElementById('repository_identifier');
+    if (identifierField && !identifierField.value) {
+      identifierField.value = opt.dataset.fullName
+        ? opt.dataset.fullName.split('/').pop().toLowerCase().replace(/[^a-z0-9_-]/g, '-')
+        : '';
+    }
+  });
+
+  manualToggle.addEventListener('change', function() {
+    if (this.checked) {
+      manualFields.style.display = '';
+      pickerDiv.querySelector('#github-org-select').disabled = true;
+      pickerDiv.querySelector('#github-repo-select').disabled = true;
+      // clear hidden inputs so manual inputs drive submission
+      hiddenUrl.value = '';
+      hiddenToken.value = '';
+      hiddenSecret.value = '';
+    } else {
+      manualFields.style.display = 'none';
+      pickerDiv.querySelector('#github-org-select').disabled = false;
+      pickerDiv.querySelector('#github-repo-select').disabled = false;
+    }
+  });
+
+  loadOrgs();
+})();
+</script>
+<% end %>

@@ -26,7 +26,7 @@
   <% end %>
 
   <% if @repository.is_a?(Repository::Github) %>
-    <%= link_to '&#128279; View on GitHub'.html_safe,
+    <%= link_to 'View on GitHub'.html_safe,
                 @repository.commit_url(@changeset.identifier),
                 target: '_blank', rel: 'noopener noreferrer',
                 class: 'icon icon-external-link',
