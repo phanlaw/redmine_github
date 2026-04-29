@@ -10,15 +10,17 @@ module RedmineGithub
 
     def call
       {
-        pr_count:            pr_count,
-        merged_pr_count:     merged_pr_count,
-        open_pr_count:       pr_count - merged_pr_count,
-        commit_count:        commit_count,
-        contributors:        contributors,
+        pr_count:              pr_count,
+        merged_pr_count:       merged_pr_count,
+        open_pr_count:         pr_count - merged_pr_count,
+        commit_count:          commit_count,
+        contributors:          contributors,
         avg_cycle_time_hours:  avg_cycle_time_hours,
         avg_review_time_hours: avg_review_time_hours,
-        issues_with_pr:      issues_with_pr_count,
-        issues_with_commits: issues_with_commits_count
+        issues_with_pr:        issues_with_pr_count,
+        issues_with_commits:   issues_with_commits_count,
+        deploy_count:          deploy_count,
+        deploy_frequency:      deploy_frequency
       }
     end
 
@@ -106,6 +108,39 @@ module RedmineGithub
 
       total = merged.sum { |pr| ((pr.merged_at - pr.opened_at) / 3600.0) }
       (total / merged.size).round(1)
+    end
+
+    def deploy_count
+      @deploy_count ||= begin
+        repos = sprint_repo_urls
+        return 0 if repos.empty? || sprint_start.nil? || sprint_end.nil?
+
+        GithubRelease.production
+                     .where(repository: repos)
+                     .between(sprint_start, sprint_end)
+                     .count
+      end
+    end
+
+    def deploy_frequency
+      return nil if sprint_start.nil? || sprint_end.nil?
+
+      weeks = [(sprint_end - sprint_start) / 7.0, 1.0].max
+      (deploy_count / weeks).round(2)
+    end
+
+    def sprint_start
+      @sprint_start ||= version.start_date&.to_time
+    end
+
+    def sprint_end
+      @sprint_end ||= (version.due_date || Date.today).to_time
+    end
+
+    def sprint_repo_urls
+      @sprint_repo_urls ||= Repository::Github
+        .where(project_id: version.project_id)
+        .pluck(:url)
     end
   end
 end
