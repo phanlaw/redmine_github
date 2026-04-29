@@ -36,8 +36,6 @@ module RedmineGithub
       Rails.logger.error "[redmine_github] WorkflowRunHandler error: #{e.message}"
     end
 
-    private
-
     def find_pull_requests_for_branch(branch, repo_html_url)
       scope = PullRequest.joins(:issue)
       if repo_html_url.present?

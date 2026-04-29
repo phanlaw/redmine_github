@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# bin/test — run plugin specs locally using Docker (mirrors CI exactly)
+# Usage: bin/test [rspec args...]
+#   bin/test                        # run all specs
+#   bin/test spec/models/redmine_github/workflow_run_handler_spec.rb
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLUGIN_DIR="$(dirname "${SCRIPT_DIR}")"
+
+cd "${PLUGIN_DIR}"
+
+echo "==> Starting test environment..."
+docker compose -f docker-compose.test.yml up --build --abort-on-container-exit --exit-code-from test test
+
+echo "==> Done."

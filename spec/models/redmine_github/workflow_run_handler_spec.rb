@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'spec_helper'
+require File.expand_path('../../rails_helper', __dir__)
 
 RSpec.describe RedmineGithub::WorkflowRunHandler do
   let(:repository) { create(:github_repository) }
