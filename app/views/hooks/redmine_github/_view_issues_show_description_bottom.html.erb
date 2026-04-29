@@ -5,9 +5,8 @@
                   .joins(:repository)
                   .where(repositories: { type: 'Repository::Github' })
                   .order(committed_on: :desc)
-
-  next if pull_reqs.empty? && changesets.empty?
 %>
+<% unless pull_reqs.empty? && changesets.empty? %>
 
 <div id="github-activity">
   <h3><%= l(:label_github_activity) %></h3>
@@ -59,3 +58,4 @@
   </div>
   <% end %>
 </div>
+<% end %>
