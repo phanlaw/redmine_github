@@ -46,6 +46,18 @@ RSpec.describe 'POST /redmine_github/webhook/', type: :request do
       include_examples 'call handler with correct arguments and return http ok'
     end
 
+    context 'event type with release' do
+      let(:event) { 'release' }
+      it {
+        headers = { 'x-hub-signature-256' => signature, 'x-github-event' => event, content_type: :json }
+        handler = instance_double(RedmineGithub::ReleaseHandler, handle: nil)
+        expect(RedmineGithub::ReleaseHandler).to receive(:new).and_return(handler)
+        expect(handler).to receive(:handle)
+        post redmine_github_webhook_path(repository_id: repository.id.to_s, format: :json), params: params, headers: headers
+        expect(response).to have_http_status(:ok)
+      }
+    end
+
     context 'event type with unknown' do
       let(:event) { 'unknown' }
       include_examples 'ignored and return http ok'
