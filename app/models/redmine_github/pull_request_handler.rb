@@ -76,21 +76,18 @@ module RedmineGithub
       case action
       when 'opened', 'reopened', 'synchronize'
         # Move to In Review only if issue is New or In Progress
-        if [1, 2].include?(issue.status_id)
-          raise "DEBUG open: issue##{issue.id} status_id=#{issue.status_id} IssueStatus.exists?(7)=#{IssueStatus.exists?(7)}"
-        end
+        Issue.where(id: issue.id).update_all(status_id: 7) if [1, 2].include?(issue.status_id)
       when 'closed'
         if merged
           # Merged → Resolved (if not already QA Testing / QA Approved / Closed)
-          issue.update_column(:status_id, 3) if [1, 2, 7].include?(issue.status_id)
+          Issue.where(id: issue.id).update_all(status_id: 3) if [1, 2, 7].include?(issue.status_id)
         else
           # Closed without merge → revert to In Progress if currently In Review
-          issue.update_column(:status_id, 2) if issue.status_id == 7
+          Issue.where(id: issue.id).update_all(status_id: 2) if issue.status_id == 7
         end
       end
     rescue StandardError => e
       Rails.logger.error "[redmine_github] status transition failed for issue ##{issue.id}: #{e.message}"
-      raise if defined?(RSpec)
     end
 
     def handle_pull_request_review(repository, payload)
