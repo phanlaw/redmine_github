@@ -1,0 +1,90 @@
+name: RSpec
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+env:
+  RAILS_ENV: test
+  BUNDLE_WITHOUT: ""
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: redmine
+          POSTGRES_PASSWORD: redmine
+          POSTGRES_DB: redmine_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Redmine
+        uses: actions/checkout@v4
+        with:
+          repository: redmine/redmine
+          ref: 6.0-stable
+          path: redmine
+
+      - name: Checkout plugin
+        uses: actions/checkout@v4
+        with:
+          path: redmine/plugins/redmine_github
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          working-directory: redmine
+          bundler-cache: true
+
+      - name: Configure database
+        run: |
+          cat > redmine/config/database.yml << 'EOF'
+          test:
+            adapter: postgresql
+            host: localhost
+            username: redmine
+            password: redmine
+            database: redmine_test
+            encoding: utf8
+          EOF
+
+      - name: Include plugin Gemfile.local
+        run: |
+          echo 'eval_gemfile "plugins/redmine_github/Gemfile.local"' >> redmine/Gemfile
+
+      - name: Bundle install
+        working-directory: redmine
+        run: bundle install
+
+      - name: Setup DB
+        working-directory: redmine
+        run: |
+          bundle exec rake db:schema:load
+          bundle exec rake redmine:plugins:migrate
+
+      - name: Run plugin specs
+        working-directory: redmine
+        run: |
+          bundle exec rspec \
+            plugins/redmine_github/spec/ \
+            -I plugins/redmine_github/spec \
+            --format documentation \
+            --format RspecJunitFormatter \
+            --out tmp/rspec_results.xml
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rspec-results
+          path: redmine/tmp/rspec_results.xml
