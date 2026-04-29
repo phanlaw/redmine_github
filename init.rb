@@ -14,6 +14,17 @@ Redmine::Plugin.register :redmine_github do
              'commit_issue_prefix'        => 'RM'
            },
            partial: 'settings/redmine_github_settings'
+
+  project_module :redmine_github do
+    permission :view_github_metrics, { 'redmine_github/github_metrics' => [:index] }, read: true
+  end
+
+  menu :project_menu, :github_metrics,
+       { controller: 'redmine_github/github_metrics', action: 'index' },
+       caption:    :label_github_metrics,
+       param:      :project_id,
+       after:      :repository,
+       html:       { class: 'icon icon-stats' }
 end
 
 Redmine::Scm::Base.add('Github')

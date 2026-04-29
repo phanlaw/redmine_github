@@ -1,0 +1,60 @@
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag 'redmine_github', plugin: :redmine_github %>
+<% end %>
+
+<div class="contextual">
+  <span class="description"><%= l(:label_github_metrics_desc) %></span>
+</div>
+
+<h2><%= l(:label_github_metrics) %> — <%= @project.name %></h2>
+
+<% if @github_repos.empty? %>
+  <p class="nodata"><%= l(:label_github_metrics_no_repos) %></p>
+<% elsif @versions.empty? %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+<% else %>
+  <table class="list github-metrics-table">
+    <thead>
+      <tr>
+        <th><%= l(:field_version) %></th>
+        <th><%= l(:label_issues_closed) %></th>
+        <th class="github-col"><%= l(:label_github_prs_merged) %></th>
+        <th class="github-col"><%= l(:label_github_prs_open) %></th>
+        <th class="github-col"><%= l(:label_github_commits) %></th>
+        <th class="github-col"><%= l(:label_github_contributors) %></th>
+        <th class="github-col"><%= l(:label_github_avg_cycle_time) %></th>
+        <th class="github-col"><%= l(:label_github_review_time) %></th>
+        <th class="github-col"><%= l(:label_github_issues_with_pr) %></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @versions.each do |version| %>
+        <% s = @stats_by_version[version.id] %>
+        <% total   = version.fixed_issues.count %>
+        <% closed  = version.fixed_issues.closed.count %>
+        <tr class="<%= cycle('odd', 'even') %>">
+          <td><%= link_to version.name, settings_project_path(@project, tab: 'versions') %></td>
+          <td>
+            <% if total > 0 %>
+              <%= closed %> / <%= total %>
+              <span class="github-progress-bar" title="<%= (closed * 100.0 / total).round %>%">
+                <span style="width:<%= (closed * 100.0 / total).round %>%"></span>
+              </span>
+            <% else %>
+              —
+            <% end %>
+          </td>
+          <td class="github-col"><%= s[:merged_pr_count].positive? ? s[:merged_pr_count] : '—' %></td>
+          <td class="github-col"><%= s[:open_pr_count].positive?   ? s[:open_pr_count]   : '—' %></td>
+          <td class="github-col"><%= s[:commit_count].positive?    ? s[:commit_count]    : '—' %></td>
+          <td class="github-col contributors-cell" title="<%= s[:contributors].join(', ') %>">
+            <%= s[:contributors].size.positive? ? s[:contributors].size : '—' %>
+          </td>
+          <td class="github-col"><%= s[:avg_cycle_time_hours] ? "#{s[:avg_cycle_time_hours]}h" : '—' %></td>
+          <td class="github-col"><%= s[:avg_review_time_hours] ? "#{s[:avg_review_time_hours]}h" : '—' %></td>
+          <td class="github-col"><%= s[:issues_with_pr].positive? ? "#{s[:issues_with_pr]} / #{total}" : '—' %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% end %>

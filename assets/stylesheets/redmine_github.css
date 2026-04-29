@@ -115,3 +115,27 @@ a.icon-pr:hover {
   color: #8c959f;
   margin-top: 4px;
 }
+
+/* PM Metrics table */
+.github-metrics-table th.github-col,
+.github-metrics-table td.github-col {
+  text-align: center;
+}
+
+.github-progress-bar {
+  display: inline-block;
+  width: 60px;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  vertical-align: middle;
+  margin-left: 6px;
+  overflow: hidden;
+}
+
+.github-progress-bar span {
+  display: block;
+  height: 100%;
+  background: #2da44e;
+  border-radius: 4px;
+}
