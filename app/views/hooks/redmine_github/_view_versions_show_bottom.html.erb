@@ -1,0 +1,45 @@
+<%
+  project = version.project
+  repos   = Repository::Github.where(project: project)
+%>
+<% if repos.any? %>
+  <%
+    stats = RedmineGithub::SprintGithubStats.new(version).call
+  %>
+  <div id="github-sprint-stats">
+    <h3><%= l(:label_github_sprint_stats) %></h3>
+    <div class="github-stats-grid">
+      <div class="github-stat-card">
+        <span class="github-stat-value"><%= stats[:merged_pr_count] %></span>
+        <span class="github-stat-label"><%= l(:label_github_prs_merged) %></span>
+        <% if stats[:open_pr_count] > 0 %>
+          <span class="github-stat-sub"><%= stats[:open_pr_count] %> <%= l(:label_github_prs_open) %></span>
+        <% end %>
+      </div>
+      <div class="github-stat-card">
+        <span class="github-stat-value"><%= stats[:commit_count] %></span>
+        <span class="github-stat-label"><%= l(:label_github_commits) %></span>
+      </div>
+      <div class="github-stat-card">
+        <span class="github-stat-value"><%= stats[:contributors].size %></span>
+        <span class="github-stat-label"><%= l(:label_github_contributors) %></span>
+        <% if stats[:contributors].any? %>
+          <span class="github-stat-sub"><%= stats[:contributors].first(3).join(', ') %><%= stats[:contributors].size > 3 ? '…' : '' %></span>
+        <% end %>
+      </div>
+      <% if stats[:avg_cycle_time_hours] %>
+      <div class="github-stat-card">
+        <span class="github-stat-value"><%= stats[:avg_cycle_time_hours] %>h</span>
+        <span class="github-stat-label"><%= l(:label_github_avg_cycle_time) %></span>
+        <% if stats[:avg_review_time_hours] %>
+          <span class="github-stat-sub"><%= l(:label_github_review_time) %>: <%= stats[:avg_review_time_hours] %>h</span>
+        <% end %>
+      </div>
+      <% end %>
+      <div class="github-stat-card">
+        <span class="github-stat-value"><%= stats[:issues_with_pr] %> / <%= version.fixed_issues.count %></span>
+        <span class="github-stat-label"><%= l(:label_github_issues_with_pr) %></span>
+      </div>
+    </div>
+  </div>
+<% end %>

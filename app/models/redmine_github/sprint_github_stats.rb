@@ -15,7 +15,8 @@ module RedmineGithub
         open_pr_count:       pr_count - merged_pr_count,
         commit_count:        commit_count,
         contributors:        contributors,
-        avg_cycle_time_hours: avg_cycle_time_hours,
+        avg_cycle_time_hours:  avg_cycle_time_hours,
+        avg_review_time_hours: avg_review_time_hours,
         issues_with_pr:      issues_with_pr_count,
         issues_with_commits: issues_with_commits_count
       }
@@ -87,7 +88,7 @@ module RedmineGithub
     def avg_cycle_time_hours
       merged = sprint_prs.where.not(merged_at: nil)
                          .joins(:issue)
-                         .select("pull_requests.merged_at, issues.created_on")
+                         .select("pull_requests.merged_at, pull_requests.opened_at, issues.created_on")
                          .to_a
 
       return nil if merged.empty?
@@ -97,6 +98,14 @@ module RedmineGithub
       end
 
       (total_hours / merged.size).round(1)
+    end
+
+    def avg_review_time_hours
+      merged = sprint_prs.where.not(merged_at: nil, opened_at: nil).to_a
+      return nil if merged.empty?
+
+      total = merged.sum { |pr| ((pr.merged_at - pr.opened_at) / 3600.0) }
+      (total / merged.size).round(1)
     end
   end
 end
