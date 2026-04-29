@@ -33,7 +33,7 @@
       <% @versions.each do |version| %>
         <% s = @stats_by_version[version.id] %>
         <% total   = version.fixed_issues.count %>
-        <% closed  = version.fixed_issues.closed.count %>
+        <% closed  = version.fixed_issues.joins(:status).where(issue_statuses: { is_closed: true }).count %>
         <tr class="<%= cycle('odd', 'even') %>">
           <td><%= link_to version.name, settings_project_path(@project, tab: 'versions') %></td>
           <td>
