@@ -5,7 +5,22 @@ en:
   label_github_webhook_secret: Webhook Secret
   setting_redmine_github_title: Redmine Github Settings
   setting_webhook_use_hostname: Use Redmine hostname in webhook requests
+  setting_github_oauth_client_id: GitHub OAuth App Client ID
+  setting_github_oauth_client_secret: GitHub OAuth App Client Secret
   text_github_repository_note: "Example: https://github.com/[owner]/[repository name].git"
+  label_github_connect_account: Connect GitHub Account
+  label_github_connected_as: "Connected as: %{login}"
+  label_github_disconnect: Disconnect
+  label_github_select_account: Select account / organization
+  label_github_select_repo: Select repository
+  label_github_loading: Loading...
+  label_github_or_enter_manually: Or enter manually
+  notice_redmine_github_oauth_connected: "GitHub account connected: %{login}"
+  notice_redmine_github_oauth_disconnected: GitHub account disconnected.
+  error_redmine_github_oauth_not_configured: GitHub OAuth App is not configured. Ask your administrator to set Client ID and Secret in plugin settings.
+  error_redmine_github_oauth_state_mismatch: OAuth state mismatch. Please try again.
+  error_redmine_github_oauth_token_exchange_failed: Failed to exchange OAuth code for access token.
+  error_redmine_github_oauth_user_fetch_failed: Failed to fetch GitHub user info.
   activerecord:
     attributes:
       pull_request:
