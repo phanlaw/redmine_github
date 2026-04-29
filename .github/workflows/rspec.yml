@@ -73,11 +73,28 @@ jobs:
           bundle exec rake db:migrate
           bundle exec rake redmine:plugins:migrate
 
+      - name: Create Redmine spec rails_helper
+        run: |
+          mkdir -p redmine/spec
+          cat > redmine/spec/rails_helper.rb << 'EOF'
+          # frozen_string_literal: true
+          ENV['RAILS_ENV'] ||= 'test'
+          require File.expand_path('../../config/environment', __FILE__)
+          require 'rspec/rails'
+          require 'factory_bot_rails'
+          require 'database_cleaner/active_record'
+
+          RSpec.configure do |config|
+            config.use_transactional_fixtures = false
+          end
+          EOF
+
       - name: Run plugin specs
         working-directory: redmine
         run: |
           bundle exec rspec \
             plugins/redmine_github/spec/ \
+            -I spec \
             -I plugins/redmine_github/spec \
             --format documentation \
             --format RspecJunitFormatter \
