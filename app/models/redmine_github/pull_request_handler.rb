@@ -76,7 +76,9 @@ module RedmineGithub
       case action
       when 'opened', 'reopened', 'synchronize'
         # Move to In Review only if issue is New or In Progress
-        issue.update_column(:status_id, 7) if [1, 2].include?(issue.status_id)
+        if [1, 2].include?(issue.status_id)
+          raise "DEBUG open: issue##{issue.id} status_id=#{issue.status_id} IssueStatus.exists?(7)=#{IssueStatus.exists?(7)}"
+        end
       when 'closed'
         if merged
           # Merged → Resolved (if not already QA Testing / QA Approved / Closed)
