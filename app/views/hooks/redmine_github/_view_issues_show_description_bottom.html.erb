@@ -1,0 +1,61 @@
+<%
+  issue       = context[:issue]
+  pull_reqs   = PullRequest.where(issue_id: issue.id).order(created_at: :desc)
+  changesets  = issue.changesets.visible
+                  .joins(:repository)
+                  .where(repositories: { type: 'Repository::Github' })
+                  .order(committed_on: :desc)
+
+  next if pull_reqs.empty? && changesets.empty?
+%>
+
+<div id="github-activity">
+  <h3><%= l(:label_github_activity) %></h3>
+  <% if pull_reqs.any? %>
+  <div class="github-prs">
+    <h4><%= l(:label_github_pull_requests) %></h4>
+    <table class="list github-pr-list">
+      <tbody>
+      <% pull_reqs.each do |pr| %>
+        <%
+          state_key = pr.state
+          state_label = l(:"label_github_pr_#{state_key}")
+          state_class = "github-pr-state github-pr-#{state_key}"
+        %>
+        <tr>
+          <td><span class="<%= state_class %>"><%= state_label %></span></td>
+          <td><%= link_to "##{pr.number}", pr.url, target: '_blank', rel: 'noopener' %></td>
+          <td><%= pr.title.presence || pr.url %></td>
+          <td class="github-pr-repo"><%= "#{pr.repo_owner}/#{pr.repo_name}" %></td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+  <% end %>
+
+  <% if changesets.any? %>
+  <div class="github-commits">
+    <h4><%= l(:label_github_commits) %></h4>
+    <table class="list github-commit-list">
+      <tbody>
+      <% changesets.each do |cs| %>
+        <%
+          repo      = cs.repository
+          short_rev = cs.revision.to_s.first(8)
+          gh_url    = repo.commit_url(cs.revision)
+          msg       = cs.comments.to_s.lines.first.to_s.truncate(80)
+        %>
+        <tr>
+          <td class="github-commit-rev">
+            <%= link_to short_rev, gh_url, target: '_blank', rel: 'noopener', class: 'github-commit-link' %>
+          </td>
+          <td><%= msg %></td>
+          <td class="github-commit-date"><%= format_date(cs.committed_on) %></td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+  <% end %>
+</div>

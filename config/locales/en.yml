@@ -24,6 +24,14 @@ en:
   error_redmine_github_oauth_state_mismatch: OAuth state mismatch. Please try again.
   error_redmine_github_oauth_token_exchange_failed: Failed to exchange OAuth code for access token.
   error_redmine_github_oauth_user_fetch_failed: Failed to fetch GitHub user info.
+  label_github_activity: GitHub Activity
+  label_github_pull_requests: Pull Requests
+  label_github_commits: Commits
+  label_github_pr_opened: Open
+  label_github_pr_mergeable: Mergeable
+  label_github_pr_merged: Merged
+  label_github_pr_open: Open
+  label_github_pr_closed: Closed
   activerecord:
     attributes:
       pull_request:
