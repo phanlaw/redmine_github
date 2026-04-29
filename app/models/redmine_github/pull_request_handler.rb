@@ -88,6 +88,7 @@ module RedmineGithub
       end
     rescue StandardError => e
       Rails.logger.error "[redmine_github] status transition failed for issue ##{issue.id}: #{e.message}"
+      raise if defined?(RSpec)
     end
 
     def handle_pull_request_review(repository, payload)
