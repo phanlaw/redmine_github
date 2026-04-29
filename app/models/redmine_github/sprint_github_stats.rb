@@ -103,7 +103,7 @@ module RedmineGithub
     end
 
     def avg_review_time_hours
-      merged = sprint_prs.where.not(merged_at: nil, opened_at: nil).to_a
+      merged = sprint_prs.where.not(merged_at: nil).where.not(opened_at: nil).to_a
       return nil if merged.empty?
 
       total = merged.sum { |pr| ((pr.merged_at - pr.opened_at) / 3600.0) }
@@ -125,7 +125,7 @@ module RedmineGithub
     def deploy_frequency
       return nil if sprint_start.nil? || sprint_end.nil?
 
-      weeks = [(sprint_end - sprint_start) / 7.0, 1.0].max
+      weeks = [(sprint_end - sprint_start) / 7.days.to_f, 1.0].max
       (deploy_count / weeks).round(2)
     end
 
