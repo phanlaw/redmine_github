@@ -5,6 +5,64 @@ require File.expand_path('../../rails_helper', __dir__)
 RSpec.describe RedmineGithub::PullRequestHandler do
   let(:repository) { create(:github_repository) }
 
+  describe '.transition_issue_status' do
+    let(:issue) { create(:issue, status_id: 1) }
+
+    def payload_for(action, merged: false)
+      {
+        'pull_request' => {
+          'action'   => action,
+          'merged'   => merged,
+          'html_url' => 'https://github.com/company/repo/pull/1',
+          'head'     => { 'ref' => "feature/RM-#{issue.id}-test" }
+        }
+      }
+    end
+
+    context 'opened — issue is New (1)' do
+      it 'moves issue to In Review (7)' do
+        RedmineGithub::PullRequestHandler.transition_issue_status(issue, payload_for('opened'))
+        expect(issue.reload.status_id).to eq(7)
+      end
+    end
+
+    context 'opened — issue is already QA Testing (8)' do
+      before { issue.update!(status_id: 8) }
+
+      it 'does not move issue backwards' do
+        RedmineGithub::PullRequestHandler.transition_issue_status(issue, payload_for('opened'))
+        expect(issue.reload.status_id).to eq(8)
+      end
+    end
+
+    context 'closed with merged=true — issue is In Review (7)' do
+      before { issue.update!(status_id: 7) }
+
+      it 'moves issue to Resolved (3)' do
+        RedmineGithub::PullRequestHandler.transition_issue_status(issue, payload_for('closed', merged: true))
+        expect(issue.reload.status_id).to eq(3)
+      end
+    end
+
+    context 'closed without merge — issue is In Review (7)' do
+      before { issue.update!(status_id: 7) }
+
+      it 'moves issue back to In Progress (2)' do
+        RedmineGithub::PullRequestHandler.transition_issue_status(issue, payload_for('closed', merged: false))
+        expect(issue.reload.status_id).to eq(2)
+      end
+    end
+
+    context 'closed without merge — issue is already Resolved (3)' do
+      before { issue.update!(status_id: 3) }
+
+      it 'does not change status' do
+        RedmineGithub::PullRequestHandler.transition_issue_status(issue, payload_for('closed', merged: false))
+        expect(issue.reload.status_id).to eq(3)
+      end
+    end
+  end
+
   describe '.handle pull_request' do
     subject { RedmineGithub::PullRequestHandler.handle(repository, 'pull_request', payload) }
 
@@ -12,11 +70,13 @@ RSpec.describe RedmineGithub::PullRequestHandler do
       let(:payload) do
         {
           'pull_request' => {
+            'action'   => 'opened',
             'html_url' => url,
             'head' => {
               'ref' => ref
             },
-            'merged_at' => merged_at
+            'merged_at' => merged_at,
+            'merged'    => false
           }
         }
       end
