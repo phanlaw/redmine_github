@@ -8,18 +8,25 @@ module RedmineGithub
       end
 
       module InstanceMethods
-        # Extends Redmine's commit message parser to recognise a configurable
-        # prefix pattern as Redmine issue references.
+        # Overrides Redmine's commit message parser for GitHub repositories.
         #
-        # With default prefix "RM", these patterns are recognised:
+        # For Repository::Github repos:
+        #   - Plain #N is treated as a GitHub issue ref (no Redmine relation created)
+        #   - #RMN / RM-N (configurable prefix) creates Redmine issue relations
+        #
+        # Recognised patterns (default prefix "RM"):
         #   RM-23    RM23    #RM-23    #RM23
         #
         # Works with existing Redmine keywords:
         #   refs RM-23     -> link commit to issue
         #   fixes RM-23    -> link + apply fix action
         #   closes #RM23   -> link + close issue
+        #
+        # Non-GitHub repos fall through to standard Redmine behavior.
         def scan_comment_for_issue_ids
-          super
+          unless repository.is_a?(Repository::Github)
+            return super
+          end
 
           return if comments.blank?
 
