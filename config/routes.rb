@@ -15,6 +15,7 @@ end
 
 scope '/projects/:project_id', module: 'redmine_github' do
   get 'github_metrics', as: 'project_github_metrics', to: 'github_metrics#index'
+  get 'pm_dashboard',   as: 'project_pm_dashboard',   to: 'pm_dashboard#index'
 
   scope '/versions/:version_id' do
     post 'qa_signoffs',         as: 'version_qa_signoffs',        to: 'qa_signoffs#create'
