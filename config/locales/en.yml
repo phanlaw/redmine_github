@@ -90,6 +90,11 @@ en:
   notice_qa_rejected: Release rejected by QA.
   notice_test_result_saved: Test result saved.
   error_invalid_test_result: Invalid test result value.
+  label_dora_metrics: DORA Metrics
+  label_dora_this_quarter: This Quarter
+  label_dora_deploy_frequency: Deploy Frequency
+  label_dora_mttr: Mean Time to Recovery
+  label_dora_change_failure_rate: Change Failure Rate
   activerecord:
     attributes:
       pull_request:

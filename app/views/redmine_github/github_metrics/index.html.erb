@@ -62,3 +62,23 @@
     </tbody>
   </table>
 <% end %>
+
+<% if @dora %>
+<h3><%= l(:label_dora_metrics) %> — <%= l(:label_dora_this_quarter) %></h3>
+<table class="list dora-metrics-table">
+  <thead>
+    <tr>
+      <th><%= l(:label_dora_deploy_frequency) %></th>
+      <th><%= l(:label_dora_mttr) %></th>
+      <th><%= l(:label_dora_change_failure_rate) %></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="odd">
+      <td><%= @dora[:deployment_frequency] ? "#{@dora[:deployment_frequency]} / wk" : '—' %></td>
+      <td><%= @dora[:mttr_minutes] ? "#{@dora[:mttr_minutes]} min" : '—' %></td>
+      <td><%= @dora[:change_failure_rate] ? "#{@dora[:change_failure_rate]}%" : '—' %></td>
+    </tr>
+  </tbody>
+</table>
+<% end %>
