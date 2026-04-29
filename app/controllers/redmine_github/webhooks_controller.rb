@@ -16,6 +16,9 @@ module RedmineGithub
       when 'workflow_run'
         WorkflowRunHandler.handle(@repository, params.to_unsafe_h)
         head :ok
+      when 'deployment_status'
+        DeploymentStatusHandler.handle(@repository, params.to_unsafe_h)
+        head :ok
       when 'release'
         ReleaseHandler.new(@repository, params.to_unsafe_h).handle
         head :ok
