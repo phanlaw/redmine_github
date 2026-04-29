@@ -20,3 +20,51 @@ a.icon-pr {
 a.icon-pr:hover {
   text-decoration: none;
 }
+
+/* GitHub Activity section on issue show page */
+#github-activity {
+  margin-top: 20px;
+}
+
+#github-activity h3 {
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 4px;
+  margin-bottom: 10px;
+}
+
+#github-activity h4 {
+  margin-top: 14px;
+  margin-bottom: 6px;
+  font-size: 0.95em;
+  color: #555;
+}
+
+.github-pr-state {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: bold;
+  color: #fff;
+}
+
+.github-pr-opened    { background-color: #2da44e; }
+.github-pr-mergeable { background-color: #0969da; }
+.github-pr-merged    { background-color: #8250df; }
+
+.github-pr-list td,
+.github-commit-list td {
+  padding: 3px 8px;
+  vertical-align: middle;
+}
+
+.github-pr-repo,
+.github-commit-date {
+  color: #888;
+  font-size: 0.85em;
+}
+
+.github-commit-rev a {
+  font-family: monospace;
+  font-size: 0.9em;
+}
