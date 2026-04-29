@@ -7,6 +7,9 @@ en:
   setting_webhook_use_hostname: Use Redmine hostname in webhook requests
   setting_github_oauth_client_id: GitHub OAuth App Client ID
   setting_github_oauth_client_secret: GitHub OAuth App Client Secret
+  setting_redmine_github_commit_prefix_title: Commit Issue Prefix
+  setting_commit_issue_prefix: Issue prefix
+  setting_commit_issue_prefix_hint: "Prefix used to reference Redmine issues in commit messages. Example: with prefix 'RM', patterns RM-23, #RM23, RM23 in commits link to Redmine issue #23. Leave empty to disable."
   text_github_repository_note: "Example: https://github.com/[owner]/[repository name].git"
   label_github_connect_account: Connect GitHub Account
   label_github_connected_as: "Connected as: %{login}"

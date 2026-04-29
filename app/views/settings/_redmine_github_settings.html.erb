@@ -21,3 +21,12 @@
     Set the Authorization callback URL to: <code><%= redmine_github_oauth_callback_url %></code>
   </p>
 </fieldset>
+
+<fieldset class="box">
+  <legend><%= t('setting_redmine_github_commit_prefix_title') %></legend>
+  <p>
+    <label><%= t('setting_commit_issue_prefix') %></label>
+    <%= text_field_tag("settings[commit_issue_prefix]", @settings['commit_issue_prefix'], size: 20, placeholder: 'RM') %>
+  </p>
+  <p class="description"><%= t('setting_commit_issue_prefix_hint') %></p>
+</fieldset>
