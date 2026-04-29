@@ -80,4 +80,9 @@ class Repository::Github < ::Repository::Git
   def scan_url
     @owner, @repo = url.to_s.scan(REPOSITORY_URI_REGEXP).flatten
   end
+
+  def commit_url(revision = nil)
+    base = url.to_s.sub(/\.git\z/, '')
+    revision.present? ? "#{base}/commit/#{revision}" : base
+  end
 end

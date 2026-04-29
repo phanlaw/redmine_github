@@ -22,4 +22,6 @@ Rails.application.config.after_initialize do
 
   IssuesController.include RedmineGithub::Include::IssuesControllerPatch
   RepositoriesController.include RedmineGithub::Include::RepositoriesControllerPatch
+
+  ApplicationHelper.prepend RedmineGithub::Prepend::ApplicationHelperPatch
 end
