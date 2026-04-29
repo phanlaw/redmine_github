@@ -17,6 +17,9 @@ Redmine::Plugin.register :redmine_github do
 
   project_module :redmine_github do
     permission :view_github_metrics, { 'redmine_github/github_metrics' => [:index] }, read: true
+    permission :manage_qa_signoffs,
+               { 'redmine_github/qa_signoffs'         => [:create, :approve, :reject],
+                 'redmine_github/issue_test_results'   => [:update] }
   end
 
   menu :project_menu, :github_metrics,
@@ -34,6 +37,7 @@ Rails.application.config.after_initialize do
   require File.expand_path('../lib/redmine_github/hooks', __FILE__)
   require File.expand_path('../lib/redmine_github/github_api/rest/repos', __FILE__)
   require File.expand_path('../lib/redmine_github/include/changeset_patch', __FILE__)
+  require File.expand_path('../lib/redmine_github/prepend/version_patch', __FILE__)
 
   Issue.include RedmineGithub::Include::IssuePatch
   Issue.prepend RedmineGithub::Prepend::IssuePatch
@@ -43,4 +47,5 @@ Rails.application.config.after_initialize do
   Changeset.include RedmineGithub::Include::ChangesetPatch
 
   ApplicationHelper.prepend RedmineGithub::Prepend::ApplicationHelperPatch
+  Version.prepend RedmineGithub::Prepend::VersionPatch
 end

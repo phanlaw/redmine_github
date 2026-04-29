@@ -67,6 +67,33 @@ RSpec.describe RedmineGithub::PullRequestHandler do
         expect(issue.reload.status_id).to eq(3)
       end
     end
+
+    context 'reopened — issue is Resolved (3)' do
+      let(:issue) { create(:issue, status: status_resolved) }
+
+      it 'moves issue to In Review and increments fix_rounds' do
+        RedmineGithub::PullRequestHandler.transition_issue_status(issue, payload_for(issue, 'reopened'))
+        expect(issue.reload.status_id).to eq(7)
+        tr = IssueTestResult.find_by(issue_id: issue.id)
+        expect(tr).to be_present
+        expect(tr.fix_rounds).to eq(1)
+      end
+
+      it 'accumulates fix_rounds on multiple reopens' do
+        2.times { RedmineGithub::PullRequestHandler.transition_issue_status(issue, payload_for(issue, 'reopened')) }
+        expect(IssueTestResult.find_by(issue_id: issue.id).fix_rounds).to eq(2)
+      end
+    end
+
+    context 'reopened — issue is New (1)' do
+      let(:issue) { create(:issue, status: status_new) }
+
+      it 'moves to In Review but does not create fix_rounds record' do
+        RedmineGithub::PullRequestHandler.transition_issue_status(issue, payload_for(issue, 'reopened'))
+        expect(issue.reload.status_id).to eq(7)
+        expect(IssueTestResult.find_by(issue_id: issue.id)).to be_nil
+      end
+    end
   end
 
   describe '.handle pull_request' do
