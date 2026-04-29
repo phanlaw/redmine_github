@@ -1,10 +1,9 @@
 <%
-  issue       = context[:issue]
-  pull_reqs   = PullRequest.where(issue_id: issue.id).order(created_at: :desc)
-  changesets  = issue.changesets.visible
-                  .joins(:repository)
-                  .where(repositories: { type: 'Repository::Github' })
-                  .order(committed_on: :desc)
+  pull_reqs  = PullRequest.where(issue_id: issue.id).order(created_at: :desc)
+  changesets = issue.changesets.visible
+                 .joins(:repository)
+                 .where(repositories: { type: 'Repository::Github' })
+                 .order(committed_on: :desc)
 %>
 <% unless pull_reqs.empty? && changesets.empty? %>
 
