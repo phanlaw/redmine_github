@@ -1,11 +1,12 @@
 <%
-  pull_reqs  = PullRequest.where(issue_id: issue.id).order(created_at: :desc)
-  changesets = issue.changesets.visible
-                 .joins(:repository)
-                 .where(repositories: { type: 'Repository::Github' })
-                 .order(committed_on: :desc)
+  pull_reqs   = PullRequest.where(issue_id: issue.id).order(created_at: :desc)
+  changesets  = issue.changesets.visible
+                  .joins(:repository)
+                  .where(repositories: { type: 'Repository::Github' })
+                  .order(committed_on: :desc)
+  deployments = GithubDeployment.for_issue(issue).recent
 %>
-<% unless pull_reqs.empty? && changesets.empty? %>
+<% unless pull_reqs.empty? && changesets.empty? && deployments.empty? %>
 
 <div id="github-activity">
   <h3><%= l(:label_github_activity) %></h3>
@@ -65,6 +66,37 @@
           </td>
           <td><%= msg %></td>
           <td class="github-commit-date"><%= format_date(cs.committed_on) %></td>
+        </tr>
+      <% end %>
+      </tbody>
+    </table>
+  </div>
+  <% end %>
+
+  <% if deployments.any? %>
+  <div class="github-deployments">
+    <h4><%= l(:label_github_deployments) %></h4>
+    <table class="list github-deployment-list">
+      <tbody>
+      <% deployments.each do |dep| %>
+        <%
+          state_class = "github-deploy-badge github-deploy-#{dep.state}"
+          state_label = l(:"label_github_deploy_#{dep.state}", default: dep.state.capitalize)
+        %>
+        <tr>
+          <td><span class="github-deploy-env"><%= dep.environment %></span></td>
+          <td><span class="<%= state_class %>"><%= state_label %></span></td>
+          <td>
+            <% if dep.environment_url.present? %>
+              <%= link_to dep.environment_url, dep.environment_url, target: '_blank', rel: 'noopener' %>
+            <% end %>
+          </td>
+          <td>
+            <% if dep.log_url.present? %>
+              <%= link_to l(:label_github_deploy_logs), dep.log_url, target: '_blank', rel: 'noopener' %>
+            <% end %>
+          </td>
+          <td class="github-commit-date"><%= format_time(dep.deployed_at) if dep.deployed_at %></td>
         </tr>
       <% end %>
       </tbody>

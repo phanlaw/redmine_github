@@ -154,3 +154,26 @@ a.icon-pr:hover {
 .github-ci-pending  { background: #bf8700; color: #fff; }
 .github-ci-cancelled, .github-ci-skipped { background: #6e7781; color: #fff; }
 .github-ci-timed_out, .github-ci-action_required { background: #cf222e; color: #fff; }
+
+/* Deploy badge */
+.github-deploy-env {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #eaeef2;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+.github-deploy-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: bold;
+}
+.github-deploy-success                      { background: #2da44e; color: #fff; }
+.github-deploy-failure, .github-deploy-error { background: #cf222e; color: #fff; }
+.github-deploy-in_progress                  { background: #bf8700; color: #fff; }
+.github-deploy-pending, .github-deploy-queued { background: #6e7781; color: #fff; }
+.github-deploy-inactive                     { background: #d0d7de; color: #57606a; }

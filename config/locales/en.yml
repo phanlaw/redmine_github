@@ -51,6 +51,15 @@ en:
   label_github_ci_timed_out: CI Timed Out
   label_github_ci_action_required: CI Action Required
   label_github_ci_pending: CI Pending
+  label_github_deployments: Deployments
+  label_github_deploy_logs: Logs
+  label_github_deploy_success: "✓ Success"
+  label_github_deploy_failure: "✗ Failed"
+  label_github_deploy_error: "✗ Error"
+  label_github_deploy_pending: Pending
+  label_github_deploy_in_progress: In Progress
+  label_github_deploy_queued: Queued
+  label_github_deploy_inactive: Inactive
   activerecord:
     attributes:
       pull_request:
