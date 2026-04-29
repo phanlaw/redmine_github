@@ -211,6 +211,115 @@ RSpec.describe RedmineGithub::PullRequestHandler do
     end
   end
 
+  describe '.hotfix_issue_id' do
+    it 'extracts issue ID from hotfix/RM-NNN' do
+      expect(described_class.hotfix_issue_id('hotfix/RM-42')).to eq(42)
+    end
+
+    it 'extracts issue ID from hotfix/RM-NNN-description' do
+      expect(described_class.hotfix_issue_id('hotfix/RM-42-null-pointer')).to eq(42)
+    end
+
+    it 'returns nil for non-hotfix branches' do
+      expect(described_class.hotfix_issue_id('feature/RM-42-foo')).to be_nil
+    end
+  end
+
+  describe 'hotfix flow' do
+    let!(:status_new)         { create(:issue_status, id: 1, name: 'New') }
+    let!(:status_in_progress) { create(:issue_status, id: 2, name: 'In Progress') }
+    let!(:status_closed)      { create(:issue_status, id: 5, name: 'Closed') }
+    let!(:status_in_review)   { create(:issue_status, id: 7, name: 'In Review') }
+    let(:issue)               { create(:issue, status: status_in_review) }
+
+    describe 'push — new hotfix branch' do
+      it 'logs an incident DoraEvent' do
+        payload = {
+          'ref'    => "refs/heads/hotfix/RM-#{issue.id}",
+          'before' => '0000000000000000000000000000000000000000',
+          'after'  => 'abc123'
+        }
+        expect {
+          described_class.handle_push(repository, payload)
+        }.to change(DoraEvent.incidents, :count).by(1)
+
+        event = DoraEvent.incidents.last
+        expect(event.issue_id).to eq(issue.id)
+        expect(event.ref).to eq("hotfix/RM-#{issue.id}")
+      end
+
+      it 'moves New issue to In Progress' do
+        new_issue = create(:issue, status: status_new)
+        payload = {
+          'ref'    => "refs/heads/hotfix/RM-#{new_issue.id}",
+          'before' => '0' * 40,
+          'after'  => 'abc123'
+        }
+        described_class.handle_push(repository, payload)
+        expect(new_issue.reload.status_id).to eq(2)
+      end
+
+      it 'does NOT log incident on regular push (non-zero before)' do
+        payload = {
+          'ref'    => "refs/heads/hotfix/RM-#{issue.id}",
+          'before' => 'deadbeef0000000000000000000000000000000000',
+          'after'  => 'abc123'
+        }
+        expect {
+          described_class.handle_push(repository, payload)
+        }.not_to change(DoraEvent, :count)
+      end
+    end
+
+    describe 'pull_request closed+merged — hotfix branch' do
+      let(:merged_at) { 30.minutes.ago.iso8601 }
+      let(:payload) do
+        {
+          'pull_request' => {
+            'action'           => 'closed',
+            'merged'           => true,
+            'html_url'         => "https://github.com/org/repo/pull/5",
+            'number'           => 5,
+            'title'            => "Fix null pointer RM-#{issue.id}",
+            'head'             => { 'ref' => "hotfix/RM-#{issue.id}" },
+            'merge_commit_sha' => 'deadbeef',
+            'merged_at'        => merged_at
+          },
+          'repository' => { 'full_name' => 'org/repo' }
+        }
+      end
+
+      before do
+        # Pre-create an incident event
+        DoraEvent.create!(
+          event_type:  'incident',
+          issue_id:    issue.id,
+          ref:         "hotfix/RM-#{issue.id}",
+          occurred_at: 2.hours.ago
+        )
+        # Stub backport PR creation so tests don't hit the network
+        allow(described_class).to receive(:create_backport_pr)
+      end
+
+      it 'closes the issue directly (status 5, bypassing QA)' do
+        described_class.transition_issue_status(issue, payload, repository: repository)
+        expect(issue.reload.status_id).to eq(5)
+      end
+
+      it 'logs a deploy DoraEvent' do
+        expect {
+          described_class.transition_issue_status(issue, payload, repository: repository)
+        }.to change(DoraEvent.deploys, :count).by(1)
+      end
+
+      it 'logs a recovery DoraEvent when incident exists' do
+        expect {
+          described_class.transition_issue_status(issue, payload, repository: repository)
+        }.to change(DoraEvent.recoveries, :count).by(1)
+      end
+    end
+  end
+
   describe '.extract_issue_id' do
     subject { RedmineGithub::PullRequestHandler.extract_issue_id(branch_name) }
 
