@@ -27,6 +27,8 @@ RSpec.describe RedmineGithub::PullRequestHandler do
       context 'when the branch has an issue ID' do
         let(:ref) { "feature/@#{issue.id}-my_first_pr" }
 
+        before { allow_any_instance_of(PullRequest).to receive(:sync) }
+
         it { expect { subject }.to change { PullRequest.exists?(url: url, issue_id: issue.id) }.to true }
         it { expect { subject }.to change(PullRequest, :count).by(1) }
       end

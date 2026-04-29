@@ -4,7 +4,7 @@ require File.expand_path('../../rails_helper', __dir__)
 
 RSpec.describe RedmineGithub::SprintGithubStats do
   let(:project)  { create(:project) }
-  let(:version)  { Version.create!(project: project, name: 'Sprint 1', start_date: 14.days.ago.to_date, due_date: Date.today) }
+  let(:version)  { Version.create!(project: project, name: 'Sprint 1', effective_date: Date.today) }
   let(:repo)     { create(:github_repository, project: project) }
   let(:issue1)   { create(:issue, project: project, fixed_version: version) }
   let(:issue2)   { create(:issue, project: project, fixed_version: version) }
@@ -54,7 +54,8 @@ RSpec.describe RedmineGithub::SprintGithubStats do
   end
 
   context 'with deploy releases' do
-    before { repo } # ensure repo exists
+    let!(:sprint_issue) { create(:issue, project: project, fixed_version: version, start_date: 14.days.ago.to_date) }
+    before { repo } # ensure repo exists + sprint_start non-nil
 
     let!(:deploy1) { create(:github_release, repository: repo.url, prerelease: false, published_at: 7.days.ago) }
     let!(:deploy2) { create(:github_release, repository: repo.url, prerelease: false, published_at: 2.days.ago) }
