@@ -95,6 +95,22 @@ en:
   label_dora_deploy_frequency: Deploy Frequency
   label_dora_mttr: Mean Time to Recovery
   label_dora_change_failure_rate: Change Failure Rate
+  label_pm_dashboard: PM Dashboard
+  label_pm_success_metrics: Sprint Success Metrics
+  label_pm_qa_gate: QA Release Gate
+  label_pm_completion_rate: Task Completion Rate
+  label_pm_bug_rate: Bug Rate
+  label_pm_delay_rate: Delay Rate
+  label_pm_avg_cycle_time: Avg Cycle Time
+  label_pm_test_execution_rate: Test Execution Rate
+  label_pm_open_blockers: Open Blockers
+  label_pm_test_results: Test Results
+  label_pm_qa_signoff: QA Sign-off
+  label_pm_release_ready: "All criteria met — PM may promote to Production"
+  label_pm_release_blocked: Production promotion blocked
+  label_pm_need_execution_rate: Test execution rate < 95%
+  label_pm_need_no_blockers: Open blocker/critical issues remain
+  label_pm_need_qa_signoff: QA sign-off not approved
   activerecord:
     attributes:
       pull_request:

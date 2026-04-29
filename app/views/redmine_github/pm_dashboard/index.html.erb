@@ -1,0 +1,121 @@
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag 'redmine_github', plugin: :redmine_github %>
+<% end %>
+
+<h2><%= l(:label_pm_dashboard) %> — <%= @project.name %></h2>
+
+<% if @versions.empty? %>
+  <p class="nodata"><%= l(:label_no_data) %></p>
+<% else %>
+  <% @versions.each do |version| %>
+    <% ps = @sprint_stats[version.id] %>
+    <% qs = @qa_stats[version.id] %>
+
+    <div class="pm-sprint-card">
+      <h3>
+        <%= link_to version.name, settings_project_path(@project, tab: 'versions') %>
+        <span class="pm-sprint-status <%= version.status == 'open' ? 'pm-status-open' : 'pm-status-closed' %>">
+          <%= version.status.upcase %>
+        </span>
+        <% if qs[:release_ready] %>
+          <span class="pm-gate-badge pm-gate-go">✓ READY FOR PRODUCTION</span>
+        <% else %>
+          <span class="pm-gate-badge pm-gate-nogo">⚠ NOT READY</span>
+        <% end %>
+      </h3>
+
+      <div class="pm-metrics-grid">
+
+        <%# ── Sprint Success Metrics ── %>
+        <div class="pm-metric-group">
+          <h4><%= l(:label_pm_success_metrics) %></h4>
+
+          <div class="pm-metric <%= ps[:completion_ok] ? 'pm-ok' : 'pm-fail' %>">
+            <span class="pm-metric-label"><%= l(:label_pm_completion_rate) %></span>
+            <span class="pm-metric-value"><%= ps[:completion_rate] %>%</span>
+            <span class="pm-metric-target">(target ≥ <%= RedmineGithub::SprintPmStats::COMPLETION_THRESHOLD %>%)</span>
+            <span class="pm-metric-badge"><%= ps[:completion_ok] ? '✓' : '✗' %></span>
+          </div>
+
+          <div class="pm-metric <%= ps[:bug_rate_ok] ? 'pm-ok' : 'pm-fail' %>">
+            <span class="pm-metric-label"><%= l(:label_pm_bug_rate) %></span>
+            <span class="pm-metric-value"><%= ps[:bug_rate] %>%</span>
+            <span class="pm-metric-target">(target &lt; <%= RedmineGithub::SprintPmStats::BUG_RATE_THRESHOLD %>%)</span>
+            <span class="pm-metric-badge"><%= ps[:bug_rate_ok] ? '✓' : '✗' %></span>
+          </div>
+
+          <div class="pm-metric <%= ps[:delay_rate_ok] ? 'pm-ok' : 'pm-fail' %>">
+            <span class="pm-metric-label"><%= l(:label_pm_delay_rate) %></span>
+            <span class="pm-metric-value"><%= ps[:delay_rate] %>%</span>
+            <span class="pm-metric-target">(target &lt; <%= RedmineGithub::SprintPmStats::DELAY_RATE_THRESHOLD %>%)</span>
+            <span class="pm-metric-badge"><%= ps[:delay_rate_ok] ? '✓' : '✗' %></span>
+          </div>
+
+          <div class="pm-metric pm-neutral">
+            <span class="pm-metric-label"><%= l(:label_pm_avg_cycle_time) %></span>
+            <span class="pm-metric-value"><%= ps[:avg_cycle_days] ? "#{ps[:avg_cycle_days]}d" : '—' %></span>
+            <span class="pm-metric-target"><%= ps[:closed] %> / <%= ps[:total] %> tasks closed</span>
+          </div>
+        </div>
+
+        <%# ── QA Release Gate ── %>
+        <div class="pm-metric-group">
+          <h4><%= l(:label_pm_qa_gate) %></h4>
+
+          <div class="pm-metric <%= qs[:execution_rate_ok] ? 'pm-ok' : 'pm-fail' %>">
+            <span class="pm-metric-label"><%= l(:label_pm_test_execution_rate) %></span>
+            <span class="pm-metric-value"><%= qs[:execution_rate] %>%</span>
+            <span class="pm-metric-target">(<%= qs[:tested] %>/<%= qs[:total] %> tested, target ≥ <%= RedmineGithub::QaGateStats::EXECUTION_RATE_THRESHOLD %>%)</span>
+            <span class="pm-metric-badge"><%= qs[:execution_rate_ok] ? '✓' : '✗' %></span>
+          </div>
+
+          <div class="pm-metric <%= qs[:blockers_ok] ? 'pm-ok' : 'pm-fail' %>">
+            <span class="pm-metric-label"><%= l(:label_pm_open_blockers) %></span>
+            <span class="pm-metric-value"><%= qs[:open_blockers] %></span>
+            <span class="pm-metric-target">(target = 0)</span>
+            <span class="pm-metric-badge"><%= qs[:blockers_ok] ? '✓' : '✗' %></span>
+          </div>
+
+          <div class="pm-metric">
+            <span class="pm-metric-label"><%= l(:label_pm_test_results) %></span>
+            <span class="pm-metric-value">
+              <span class="qa-badge qa-pass"><%= qs[:passed] %> Pass</span>
+              <span class="qa-badge qa-fail"><%= qs[:failed] %> Fail</span>
+              <span class="qa-badge qa-blocked"><%= qs[:blocked_count] %> Blocked</span>
+            </span>
+          </div>
+
+          <div class="pm-metric <%= qs[:signoff_ok] ? 'pm-ok' : (qs[:signoff_status] == 'rejected' ? 'pm-fail' : 'pm-pending') %>">
+            <span class="pm-metric-label"><%= l(:label_pm_qa_signoff) %></span>
+            <span class="pm-metric-value">
+              <% if qs[:signoff_status] == 'approved' %>
+                <span class="qa-badge qa-pass">✓ Approved</span>
+              <% elsif qs[:signoff_status] == 'rejected' %>
+                <span class="qa-badge qa-fail">✗ Rejected</span>
+              <% else %>
+                <span class="qa-badge">Pending</span>
+              <% end %>
+            </span>
+            <span class="pm-metric-badge"><%= qs[:signoff_ok] ? '✓' : '—' %></span>
+          </div>
+
+          <% if qs[:release_ready] %>
+            <div class="pm-release-go">
+              🚀 <%= l(:label_pm_release_ready) %>
+            </div>
+          <% else %>
+            <div class="pm-release-nogo">
+              <strong><%= l(:label_pm_release_blocked) %></strong>
+              <ul>
+                <%= content_tag(:li, l(:label_pm_need_execution_rate))  unless qs[:execution_rate_ok] %>
+                <%= content_tag(:li, l(:label_pm_need_no_blockers))     unless qs[:blockers_ok] %>
+                <%= content_tag(:li, l(:label_pm_need_qa_signoff))      unless qs[:signoff_ok] %>
+              </ul>
+            </div>
+          <% end %>
+        </div>
+
+      </div><%# /pm-metrics-grid %>
+    </div><%# /pm-sprint-card %>
+  <% end %>
+<% end %>
