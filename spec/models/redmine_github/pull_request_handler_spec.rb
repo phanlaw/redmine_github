@@ -6,7 +6,13 @@ RSpec.describe RedmineGithub::PullRequestHandler do
   let(:repository) { create(:github_repository) }
 
   describe '.transition_issue_status' do
-    let(:issue) { create(:issue, status_id: 1) }
+    let!(:status_new)         { create(:issue_status, id: 1,  name: 'New') }
+    let!(:status_in_progress) { create(:issue_status, id: 2,  name: 'In Progress') }
+    let!(:status_resolved)    { create(:issue_status, id: 3,  name: 'Resolved') }
+    let!(:status_in_review)   { create(:issue_status, id: 7,  name: 'In Review') }
+    let!(:status_qa_testing)  { create(:issue_status, id: 8,  name: 'QA Testing') }
+
+    let(:issue) { create(:issue, status: status_new) }
 
     def payload_for(action, merged: false)
       {
