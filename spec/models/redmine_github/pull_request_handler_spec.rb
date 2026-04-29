@@ -33,7 +33,7 @@ RSpec.describe RedmineGithub::PullRequestHandler do
     end
 
     context 'opened — issue is already QA Testing (8)' do
-      before { issue.update!(status_id: 8) }
+      before { issue.update_column(:status_id, 8) }
 
       it 'does not move issue backwards' do
         RedmineGithub::PullRequestHandler.transition_issue_status(issue, payload_for('opened'))
@@ -42,7 +42,7 @@ RSpec.describe RedmineGithub::PullRequestHandler do
     end
 
     context 'closed with merged=true — issue is In Review (7)' do
-      before { issue.update!(status_id: 7) }
+      before { issue.update_column(:status_id, 7) }
 
       it 'moves issue to Resolved (3)' do
         RedmineGithub::PullRequestHandler.transition_issue_status(issue, payload_for('closed', merged: true))
@@ -51,7 +51,7 @@ RSpec.describe RedmineGithub::PullRequestHandler do
     end
 
     context 'closed without merge — issue is In Review (7)' do
-      before { issue.update!(status_id: 7) }
+      before { issue.update_column(:status_id, 7) }
 
       it 'moves issue back to In Progress (2)' do
         RedmineGithub::PullRequestHandler.transition_issue_status(issue, payload_for('closed', merged: false))
@@ -60,7 +60,7 @@ RSpec.describe RedmineGithub::PullRequestHandler do
     end
 
     context 'closed without merge — issue is already Resolved (3)' do
-      before { issue.update!(status_id: 3) }
+      before { issue.update_column(:status_id, 3) }
 
       it 'does not change status' do
         RedmineGithub::PullRequestHandler.transition_issue_status(issue, payload_for('closed', merged: false))
