@@ -44,6 +44,13 @@ en:
   label_github_pr_merged: Merged
   label_github_pr_open: Open
   label_github_pr_closed: Closed
+  label_github_ci_success: ✓ CI Passed
+  label_github_ci_failure: ✗ CI Failed
+  label_github_ci_cancelled: CI Cancelled
+  label_github_ci_skipped: CI Skipped
+  label_github_ci_timed_out: CI Timed Out
+  label_github_ci_action_required: CI Action Required
+  label_github_ci_pending: CI Pending
   activerecord:
     attributes:
       pull_request:

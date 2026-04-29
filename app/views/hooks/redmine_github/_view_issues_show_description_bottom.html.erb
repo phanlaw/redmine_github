@@ -25,6 +25,21 @@
           <td><%= link_to "##{pr.number}", pr.url, target: '_blank', rel: 'noopener' %></td>
           <td><%= pr.title.presence || pr.url %></td>
           <td class="github-pr-repo"><%= "#{pr.repo_owner}/#{pr.repo_name}" %></td>
+          <% if pr.ci_status.present? %>
+            <%
+              ci_class = "github-ci-badge github-ci-#{pr.ci_status}"
+              ci_label = l(:"label_github_ci_#{pr.ci_status}", default: pr.ci_status.capitalize)
+            %>
+            <td>
+              <% if pr.ci_run_url.present? %>
+                <%= link_to ci_label, pr.ci_run_url, target: '_blank', rel: 'noopener', class: ci_class %>
+              <% else %>
+                <span class="<%= ci_class %>"><%= ci_label %></span>
+              <% end %>
+            </td>
+          <% else %>
+            <td></td>
+          <% end %>
         </tr>
       <% end %>
       </tbody>
