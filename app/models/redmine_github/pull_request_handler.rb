@@ -74,9 +74,17 @@ module RedmineGithub
       merged = payload.dig('pull_request', 'merged')
 
       case action
-      when 'opened', 'reopened', 'synchronize'
+      when 'opened', 'synchronize'
         # Move to In Review only if issue is New or In Progress
         Issue.where(id: issue.id).update_all(status_id: 7) if [1, 2].include?(issue.status_id)
+      when 'reopened'
+        # PR reopened after close — if issue was Resolved/QA stage, track a fix round
+        if [3, 8, 9].include?(issue.status_id)
+          tr = IssueTestResult.for_issue(issue)
+          tr.save! unless tr.persisted?
+          tr.increment_fix_rounds!
+        end
+        Issue.where(id: issue.id).update_all(status_id: 7) if [1, 2, 3].include?(issue.status_id)
       when 'closed'
         if merged
           # Merged → Resolved (if not already QA Testing / QA Approved / Closed)

@@ -43,3 +43,69 @@
     </div>
   </div>
 <% end %>
+
+<%
+  signoff     = QaSignoff.for_version(version)
+  can_qa      = User.current.logged? && User.current.allowed_to?(:manage_qa_signoffs, version.project)
+  issues_total = version.fixed_issues.count
+  issues_pass  = IssueTestResult.where(issue_id: version.fixed_issues.ids, result: 'pass').count
+  issues_fail  = IssueTestResult.where(issue_id: version.fixed_issues.ids, result: 'fail').count
+  issues_blocked = IssueTestResult.where(issue_id: version.fixed_issues.ids, result: 'blocked').count
+%>
+<div id="qa-release-gate">
+  <h3><%= l(:label_qa_release_gate) %></h3>
+
+  <div class="qa-readiness-grid">
+    <div class="qa-stat-card">
+      <span class="qa-stat-value qa-pass"><%= issues_pass %></span>
+      <span class="qa-stat-label"><%= l(:label_qa_issues_pass) %></span>
+    </div>
+    <div class="qa-stat-card">
+      <span class="qa-stat-value qa-fail"><%= issues_fail %></span>
+      <span class="qa-stat-label"><%= l(:label_qa_issues_fail) %></span>
+    </div>
+    <div class="qa-stat-card">
+      <span class="qa-stat-value qa-blocked"><%= issues_blocked %></span>
+      <span class="qa-stat-label"><%= l(:label_qa_issues_blocked) %></span>
+    </div>
+    <div class="qa-stat-card">
+      <span class="qa-stat-value"><%= issues_total - issues_pass - issues_fail - issues_blocked %></span>
+      <span class="qa-stat-label"><%= l(:label_qa_issues_pending) %></span>
+    </div>
+  </div>
+
+  <div class="qa-signoff-status">
+    <% if signoff.approved? %>
+      <span class="qa-badge qa-badge-approved"><%= l(:label_qa_status_approved) %></span>
+      <span class="qa-signoff-meta">
+        <%= l(:label_qa_signed_by) %> <%= signoff.user&.name %>
+        <% if signoff.signed_off_at %>· <%= format_time(signoff.signed_off_at) %><% end %>
+      </span>
+    <% elsif signoff.rejected? %>
+      <span class="qa-badge qa-badge-rejected"><%= l(:label_qa_status_rejected) %></span>
+      <% if signoff.notes.present? %>
+        <span class="qa-signoff-notes"><%= signoff.notes %></span>
+      <% end %>
+    <% else %>
+      <span class="qa-badge qa-badge-pending"><%= l(:label_qa_status_pending) %></span>
+    <% end %>
+  </div>
+
+  <% if can_qa %>
+    <div class="qa-actions">
+      <% unless signoff.approved? %>
+        <%= form_tag(version_qa_signoffs_approve_path(version.project, version), method: :post, style: 'display:inline') do %>
+          <input type="text" name="notes" placeholder="<%= l(:label_qa_notes_placeholder) %>" style="width:300px">
+          <button type="submit" class="button-positive"><%= l(:label_qa_approve) %></button>
+        <% end %>
+      <% end %>
+      <% unless signoff.rejected? %>
+        <%= form_tag(version_qa_signoffs_reject_path(version.project, version), method: :post, style: 'display:inline') do %>
+          <input type="text" name="notes" placeholder="<%= l(:label_qa_reject_reason) %>" style="width:300px">
+          <button type="submit" class="button-negative"><%= l(:label_qa_reject) %></button>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>
+

@@ -60,11 +60,43 @@ en:
   label_github_deploy_in_progress: In Progress
   label_github_deploy_queued: Queued
   label_github_deploy_inactive: Inactive
+  label_qa_release_gate: QA Release Gate
+  label_qa_test_result: QA Test Result
+  label_qa_issues_pass: "Pass"
+  label_qa_issues_fail: "Fail"
+  label_qa_issues_blocked: Blocked
+  label_qa_issues_pending: Untested
+  label_qa_result_pending: Not Tested
+  label_qa_result_pass: "✓ Pass"
+  label_qa_result_fail: "✗ Fail"
+  label_qa_result_blocked: Blocked
+  label_qa_status_approved: "✓ QA Approved"
+  label_qa_status_rejected: "✗ QA Rejected"
+  label_qa_status_pending: QA Pending
+  label_qa_signed_by: Signed off by
+  label_qa_approve: Approve Release
+  label_qa_reject: Reject
+  label_qa_mark_pass: Pass
+  label_qa_mark_fail: Fail
+  label_qa_mark_blocked: Blocked
+  label_qa_notes_placeholder: Notes (optional)
+  label_qa_reject_reason: Rejection reason
+  label_qa_fix_rounds:
+    one: "%{count} fix round"
+    other: "%{count} fix rounds"
+  label_qa_tester: Tested by
+  notice_qa_signoff_created: QA sign-off record created.
+  notice_qa_approved: Release approved by QA.
+  notice_qa_rejected: Release rejected by QA.
+  notice_test_result_saved: Test result saved.
+  error_invalid_test_result: Invalid test result value.
   activerecord:
     attributes:
       pull_request:
         url: URL
     errors:
+      messages:
+        qa_signoff_required: QA sign-off is required before locking this version for release.
       models:
         repository/github:
           attributes:

@@ -5,6 +5,8 @@
                   .where(repositories: { type: 'Repository::Github' })
                   .order(committed_on: :desc)
   deployments = GithubDeployment.for_issue(issue).recent
+  test_result = IssueTestResult.find_by(issue_id: issue.id)
+  can_qa      = User.current.logged? && User.current.allowed_to?(:manage_qa_signoffs, issue.project)
 %>
 <% unless pull_reqs.empty? && changesets.empty? && deployments.empty? %>
 
@@ -103,5 +105,46 @@
     </table>
   </div>
   <% end %>
+
+  <div class="qa-test-result">
+    <h4><%= l(:label_qa_test_result) %></h4>
+    <% if test_result %>
+      <%
+        tr_class = "qa-badge qa-badge-#{test_result.result}"
+        tr_label = l(:"label_qa_result_#{test_result.result}", default: test_result.result.capitalize)
+      %>
+      <span class="<%= tr_class %>"><%= tr_label %></span>
+      <% if test_result.fix_rounds > 0 %>
+        <span class="qa-fix-rounds"><%= l(:label_qa_fix_rounds, count: test_result.fix_rounds) %></span>
+      <% end %>
+      <% if test_result.tester_id.present? %>
+        <span class="qa-tester"><%= l(:label_qa_tester) %>: <%= test_result.tester&.name %></span>
+      <% end %>
+      <% if test_result.notes.present? %>
+        <p class="qa-notes"><%= test_result.notes %></p>
+      <% end %>
+    <% else %>
+      <span class="qa-badge qa-badge-pending"><%= l(:label_qa_result_pending) %></span>
+    <% end %>
+
+    <% if can_qa %>
+      <div class="qa-test-actions">
+        <%= form_tag(issue_test_result_path(issue.project, issue), method: :post, style: 'display:inline') do %>
+          <input type="hidden" name="result" value="pass">
+          <button type="submit" class="button-positive"><%= l(:label_qa_mark_pass) %></button>
+        <% end %>
+        <%= form_tag(issue_test_result_path(issue.project, issue), method: :post, style: 'display:inline') do %>
+          <input type="hidden" name="result" value="fail">
+          <input type="text" name="notes" placeholder="<%= l(:label_qa_notes_placeholder) %>" style="width:200px">
+          <button type="submit" class="button-negative"><%= l(:label_qa_mark_fail) %></button>
+        <% end %>
+        <%= form_tag(issue_test_result_path(issue.project, issue), method: :post, style: 'display:inline') do %>
+          <input type="hidden" name="result" value="blocked">
+          <input type="text" name="notes" placeholder="<%= l(:label_qa_notes_placeholder) %>" style="width:200px">
+          <button type="submit"><%= l(:label_qa_mark_blocked) %></button>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
 </div>
 <% end %>
