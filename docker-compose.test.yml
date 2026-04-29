@@ -1,0 +1,34 @@
+services:
+  postgres:
+    image: postgres:14
+    network_mode: host
+    environment:
+      POSTGRES_USER: redmine
+      POSTGRES_PASSWORD: redmine
+      POSTGRES_DB: redmine_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U redmine"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  test:
+    image: ruby:3.2
+    network_mode: host
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      RAILS_ENV: test
+      BUNDLE_WITHOUT: ""
+      DATABASE_URL: "postgresql://redmine:redmine@localhost/redmine_test"
+    volumes:
+      - .:/plugin:ro
+      - redmine_src:/redmine
+      - bundle_cache:/usr/local/bundle
+    working_dir: /redmine
+    command: /plugin/bin/docker-test-entrypoint.sh
+
+volumes:
+  redmine_src:
+  bundle_cache:

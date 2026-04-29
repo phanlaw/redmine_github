@@ -139,3 +139,18 @@ a.icon-pr:hover {
   background: #2da44e;
   border-radius: 4px;
 }
+
+/* CI badge */
+.github-ci-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: bold;
+  text-decoration: none;
+}
+.github-ci-success  { background: #2da44e; color: #fff; }
+.github-ci-failure  { background: #cf222e; color: #fff; }
+.github-ci-pending  { background: #bf8700; color: #fff; }
+.github-ci-cancelled, .github-ci-skipped { background: #6e7781; color: #fff; }
+.github-ci-timed_out, .github-ci-action_required { background: #cf222e; color: #fff; }

@@ -13,6 +13,9 @@ module RedmineGithub
       when 'pull_request', 'pull_request_review', 'push', 'status'
         PullRequestHandler.handle(@repository, event, params)
         head :ok
+      when 'workflow_run'
+        WorkflowRunHandler.handle(@repository, params.to_unsafe_h)
+        head :ok
       when 'release'
         ReleaseHandler.new(@repository, params.to_unsafe_h).handle
         head :ok
