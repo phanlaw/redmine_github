@@ -24,6 +24,13 @@ en:
   error_redmine_github_oauth_state_mismatch: OAuth state mismatch. Please try again.
   error_redmine_github_oauth_token_exchange_failed: Failed to exchange OAuth code for access token.
   error_redmine_github_oauth_user_fetch_failed: Failed to fetch GitHub user info.
+  label_github_sprint_stats: GitHub Sprint Stats
+  label_github_prs_merged: PRs Merged
+  label_github_prs_open: open
+  label_github_contributors: Contributors
+  label_github_avg_cycle_time: Avg Cycle Time
+  label_github_review_time: Review time
+  label_github_issues_with_pr: Issues with PR
   label_github_activity: GitHub Activity
   label_github_pull_requests: Pull Requests
   label_github_commits: Commits

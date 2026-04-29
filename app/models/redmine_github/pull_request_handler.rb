@@ -49,12 +49,16 @@ module RedmineGithub
       issues = extract_issues_from_pr_payload(payload)
       return if issues.empty?
 
-      url   = payload.dig('pull_request', 'html_url')
-      title = payload.dig('pull_request', 'title')
+      url       = payload.dig('pull_request', 'html_url')
+      title     = payload.dig('pull_request', 'title')
+      opened_at = payload.dig('pull_request', 'created_at')
 
       issues.each do |issue|
         pr = PullRequest.find_or_create_by(issue: issue, url: url)
-        pr.update(title: title) if title.present?
+        pr.update(
+          title:     title.presence || pr.title,
+          opened_at: pr.opened_at || (opened_at ? Time.parse(opened_at) : nil)
+        )
         pr.sync
       end
     end
