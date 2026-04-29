@@ -60,7 +60,34 @@ module RedmineGithub
           opened_at: pr.opened_at || (opened_at ? Time.parse(opened_at) : nil)
         )
         pr.sync
+        transition_issue_status(issue, payload)
       end
+    end
+
+    # Transition Redmine issue status based on PR action.
+    # Only advances status — never moves backwards past a later stage
+    # (e.g., won't move a QA-approved issue back to In Review).
+    #
+    # Status IDs: 1=New, 2=In Progress, 3=Resolved, 7=In Review, 8=QA Testing, 9=QA Approved, 5=Closed
+    def transition_issue_status(issue, payload)
+      action = payload.dig('pull_request', 'action').to_s
+      merged = payload.dig('pull_request', 'merged')
+
+      case action
+      when 'opened', 'reopened', 'synchronize'
+        # Move to In Review only if issue is New or In Progress
+        Issue.where(id: issue.id).update_all(status_id: 7) if [1, 2].include?(issue.status_id)
+      when 'closed'
+        if merged
+          # Merged → Resolved (if not already QA Testing / QA Approved / Closed)
+          Issue.where(id: issue.id).update_all(status_id: 3) if [1, 2, 7].include?(issue.status_id)
+        else
+          # Closed without merge → revert to In Progress if currently In Review
+          Issue.where(id: issue.id).update_all(status_id: 2) if issue.status_id == 7
+        end
+      end
+    rescue StandardError => e
+      Rails.logger.error "[redmine_github] status transition failed for issue ##{issue.id}: #{e.message}"
     end
 
     def handle_pull_request_review(repository, payload)
