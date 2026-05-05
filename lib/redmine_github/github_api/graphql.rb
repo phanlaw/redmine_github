@@ -47,7 +47,9 @@ module RedmineGithub
         # A repository has personal token and graphql schema may differcent from each repositories.
         # But graphql query must be constant variable, then create client module for each repositories.
         mod = Module.new
-        const_set("Repository#{repository.id}Client", mod)
+        const_name = "Repository#{repository.id}Client"
+        # Guard: only set constant once to prevent reinitialization warnings
+        const_set(const_name, mod) unless const_defined?(const_name)
         mod.module_eval do
           http = GraphQL::Client::HTTP.new(END_POINT) do
             @@__secret_token__ = repository.password
