@@ -17,7 +17,7 @@ Redmine::Plugin.register :redmine_github do
 
   project_module :redmine_github do
     permission :view_github_metrics, { 'redmine_github/github_metrics' => [:index] }, read: true
-    permission :view_pm_dashboard,   { 'redmine_github/pm_dashboard'   => [:index, :failed_tests] }, read: true
+    permission :view_pm_dashboard,   { 'redmine_github/pm_dashboard'   => [:index, :closed_issues, :delayed_tasks, :blockers, :failed_tests] }, read: true
     permission :manage_qa_signoffs,
                { 'redmine_github/qa_signoffs'         => [:create, :approve, :reject],
                  'redmine_github/issue_test_results'   => [:update] }
