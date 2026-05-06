@@ -23,6 +23,7 @@ module RedmineGithub
           qa_stats: @qa_stats,
           sprint_stats: @sprint_stats
         ).call
+        @approval_workflow = RedmineGithub::ApprovalWorkflow.new(@selected_sprint).call
       end
     end
 

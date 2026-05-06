@@ -771,3 +771,137 @@ a.icon-pr:hover {
 .pm-gate-rules li:last-child {
   margin-bottom: 0;
 }
+
+/* ── PM Approval Workflow ─────────────────────────────────────── */
+.pm-approval-chain {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+  padding: 1.5em;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.pm-approval-step {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  padding: 1em;
+  border-left: 4px solid #ddd;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.pm-step-pending {
+  border-left-color: #9ca3af;
+}
+
+.pm-step-approved {
+  border-left-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.pm-step-rejected {
+  border-left-color: #ef4444;
+  background: #fef2f2;
+}
+
+.pm-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #e5e7eb;
+  border-radius: 50%;
+  font-weight: 700;
+  color: #333;
+  font-size: 0.9em;
+}
+
+.pm-step-pending .pm-step-number {
+  background: #9ca3af;
+  color: #fff;
+}
+
+.pm-step-approved .pm-step-number {
+  background: #22c55e;
+  color: #fff;
+}
+
+.pm-step-rejected .pm-step-number {
+  background: #ef4444;
+  color: #fff;
+}
+
+.pm-step-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95em;
+}
+
+.pm-step-status {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.pm-step-status.pending {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.pm-step-status.approved {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.pm-step-status.rejected {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.pm-approval-actions {
+  display: flex;
+  gap: 0.5em;
+  margin-top: 0.5em;
+}
+
+.pm-approval-actions .btn {
+  padding: 0.4em 0.8em;
+  font-size: 0.85em;
+}
+
+.pm-approval-chain-status {
+  padding: 1em;
+  border-radius: 4px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.pm-chain-ready {
+  display: block;
+  color: #22c55e;
+  background: #f0fdf4;
+  border: 1px solid #22c55e;
+  padding: 0.75em;
+  border-radius: 4px;
+}
+
+.pm-chain-warning {
+  display: block;
+  color: #f59e0b;
+  background: #fffbeb;
+  border: 1px solid #f59e0b;
+  padding: 0.75em;
+  border-radius: 4px;
+}
+
+.pm-chain-pending {
+  display: block;
+  color: #9ca3af;
+  background: #f3f4f6;
+  border: 1px solid #9ca3af;
+  padding: 0.75em;
+  border-radius: 4px;
+}
