@@ -27,6 +27,10 @@ scope '/projects/:project_id', module: 'redmine_github' do
     post 'qa_signoffs',         as: 'version_qa_signoffs',        to: 'qa_signoffs#create'
     post 'qa_signoffs/approve', as: 'version_qa_signoffs_approve', to: 'qa_signoffs#approve'
     post 'qa_signoffs/reject',  as: 'version_qa_signoffs_reject',  to: 'qa_signoffs#reject'
+    post 'release_approvals/approve_qa', as: 'version_release_approvals_approve_qa', to: 'release_approvals#approve_qa'
+    post 'release_approvals/reject_qa',  as: 'version_release_approvals_reject_qa',  to: 'release_approvals#reject_qa'
+    post 'release_approvals/approve_pm', as: 'version_release_approvals_approve_pm', to: 'release_approvals#approve_pm'
+    post 'release_approvals/reject_pm',  as: 'version_release_approvals_reject_pm',  to: 'release_approvals#reject_pm'
   end
 
   scope '/issues/:issue_id' do

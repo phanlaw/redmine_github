@@ -237,6 +237,73 @@
         </div>
       </div>
 
+      <%# ── Approval Workflow ── %>
+      <% workflow = @approval_workflow %>
+      <div class="pm-metric-group">
+        <h4><%= l(:label_pm_approval_workflow) %></h4>
+
+        <div class="pm-approval-chain">
+          <%# QA Sign-off %>
+          <div class="pm-approval-step pm-approval-qa pm-step-<%= workflow[:qa_approval].status %>">
+            <span class="pm-step-number">1</span>
+            <span class="pm-step-name">QA Sign-off</span>
+            <span class="pm-step-status <%= workflow[:qa_approval].status %>">
+              <% case workflow[:qa_approval].status %>
+              <% when 'approved' %>
+                ✓ Approved by <%= workflow[:qa_approval].user.name %>
+              <% when 'rejected' %>
+                ✗ Rejected by <%= workflow[:qa_approval].user.name %>
+              <% else %>
+                Pending
+              <% end %>
+            </span>
+            <% if workflow[:qa_approval].pending? %>
+              <div class="pm-approval-actions">
+                <%= button_to 'Approve', version_release_approvals_approve_qa_path(@project, @selected_sprint), method: :post, class: 'btn btn-sm btn-success', data: { confirm: 'Approve QA?' } %>
+                <%= button_to 'Reject', version_release_approvals_reject_qa_path(@project, @selected_sprint), method: :post, class: 'btn btn-sm btn-danger', data: { confirm: 'Reject QA?' } %>
+              </div>
+            <% end %>
+          </div>
+
+          <%# PM Approval %>
+          <div class="pm-approval-step pm-approval-pm pm-step-<%= workflow[:pm_approval].status %>">
+            <span class="pm-step-number">2</span>
+            <span class="pm-step-name">PM Release</span>
+            <span class="pm-step-status <%= workflow[:pm_approval].status %>">
+              <% case workflow[:pm_approval].status %>
+              <% when 'approved' %>
+                ✓ Approved by <%= workflow[:pm_approval].user.name %>
+              <% when 'rejected' %>
+                ✗ Rejected by <%= workflow[:pm_approval].user.name %>
+              <% else %>
+                <% if workflow[:qa_approval].approved? %>
+                  Ready for PM approval
+                <% else %>
+                  Waiting for QA sign-off
+                <% end %>
+              <% end %>
+            </span>
+            <% if workflow[:pm_approval].pending? && workflow[:qa_approval].approved? %>
+              <div class="pm-approval-actions">
+                <%= button_to 'Approve Release', version_release_approvals_approve_pm_path(@project, @selected_sprint), method: :post, class: 'btn btn-sm btn-success', data: { confirm: 'Approve release to production?' } %>
+                <%= button_to 'Reject', version_release_approvals_reject_pm_path(@project, @selected_sprint), method: :post, class: 'btn btn-sm btn-danger', data: { confirm: 'Reject release?' } %>
+              </div>
+            <% end %>
+          </div>
+
+          <%# Chain Status %>
+          <div class="pm-approval-chain-status">
+            <% if workflow[:chain_complete] %>
+              <span class="pm-chain-ready">✓ Approval chain complete. Ready to deploy to production.</span>
+            <% elsif workflow[:qa_approval].approved? %>
+              <span class="pm-chain-warning">⚠ Waiting for PM approval to proceed with release.</span>
+            <% else %>
+              <span class="pm-chain-pending">○ Waiting for QA sign-off to begin release chain.</span>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
       <%# ── Blocker Visibility ── %>
       <% blockers = @sprint_stats[:blockers] || [] %>
       <% if blockers.any? %>
