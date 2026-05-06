@@ -8,11 +8,10 @@
   <% form_with local: true do |f| %>
     <div class="pm-selection-group">
       <label><%= l(:label_pm_project) %></label>
-      <%= select_tag :project_id, 
+      <%= select_tag :project_id,
           options_from_collection_for_select(Project.visible.sorted, :id, :name, @project.id),
           onchange: "window.location = this.value ? '/projects/' + this.value + '/pm_dashboard' : '#'" %>
     </div>
-
     <div class="pm-selection-group">
       <label><%= l(:label_pm_sprint) %></label>
       <%= select_tag :sprint_id,
@@ -27,395 +26,206 @@
 <% elsif !@selected_sprint %>
   <p class="notice">Select a sprint to view dashboard.</p>
 <% else %>
-  <% ps = @sprint_stats %>
-  <% qs = @qa_stats %>
-      <h3>
-        <%= link_to @selected_sprint.name, settings_project_path(@project, tab: 'versions') %>
-        <span class="pm-sprint-status <%= @selected_sprint.status == 'open' ? 'pm-status-open' : 'pm-status-closed' %>">
-          <%= @selected_sprint.status.upcase %>
-        </span>
-        <% if qs[:release_ready] %>
-          <span class="pm-gate-badge pm-gate-go">✓ READY FOR PRODUCTION</span>
-        <% else %>
-          <span class="pm-gate-badge pm-gate-nogo">⚠ NOT READY</span>
+  <% ps       = @sprint_stats %>
+  <% qs       = @qa_stats %>
+  <% rg       = @release_gate %>
+  <% workflow = @approval_workflow %>
+
+  <%# Determine approval state %>
+  <% qa_pending = workflow[:qa_approval].pending? %>
+  <% pm_pending = workflow[:pm_approval].pending? && workflow[:qa_approval].approved? %>
+
+  <%# Collect what's blocking a release %>
+  <%
+    blocking = []
+    blocking << "completion #{ps[:completion_rate]}% (need ≥#{RedmineGithub::SprintPmStats::COMPLETION_THRESHOLD}%)"  unless ps[:completion_ok]
+    blocking << "bug rate #{ps[:bug_rate]}% (need <#{RedmineGithub::SprintPmStats::BUG_RATE_THRESHOLD}%)"              unless ps[:bug_rate_ok]
+    blocking << "test coverage #{qs[:execution_rate]}% (need ≥#{RedmineGithub::QaGateStats::EXECUTION_RATE_THRESHOLD}%)" unless qs[:execution_rate_ok]
+    blocking << "#{qs[:open_blockers]} open #{'blocker'.pluralize(qs[:open_blockers])}"                                unless qs[:blockers_ok]
+    blocking << "QA sign-off pending"                                                                                  unless qs[:signoff_ok]
+  %>
+
+  <%# ── Decision banner ── %>
+  <% if rg[:ready] && workflow[:chain_complete] %>
+    <div class="pm-decision pm-go">
+      <span class="pm-decision-verdict">✓ READY FOR PRODUCTION</span>
+      <span class="pm-decision-meta"><%= @selected_sprint.name %> &nbsp;·&nbsp; QA &amp; PM approved</span>
+    </div>
+  <% elsif (rg[:ready] || rg[:risky]) && (qa_pending || pm_pending) %>
+    <div class="pm-decision pm-awaiting">
+      <span class="pm-decision-verdict">⏳ AWAITING APPROVAL</span>
+      <span class="pm-decision-meta"><%= @selected_sprint.name %> &nbsp;·&nbsp; <%= qa_pending ? 'Waiting for QA sign-off' : 'Waiting for PM approval' %></span>
+    </div>
+  <% elsif rg[:risky] %>
+    <div class="pm-decision pm-risky">
+      <span class="pm-decision-verdict">⚠ RISKY — review before releasing</span>
+      <span class="pm-decision-meta"><%= @selected_sprint.name %> &nbsp;·&nbsp; <%= blocking.join(' · ') %></span>
+    </div>
+  <% else %>
+    <div class="pm-decision pm-nogo">
+      <span class="pm-decision-verdict">✗ NOT READY &mdash; <%= blocking.size %> <%= 'issue'.pluralize(blocking.size) %> blocking</span>
+      <span class="pm-decision-meta"><%= @selected_sprint.name %> &nbsp;·&nbsp; <%= blocking.join(' · ') %></span>
+    </div>
+  <% end %>
+
+  <%# ── Action list: what needs to happen before release ── %>
+  <% if blocking.any? || qa_pending || pm_pending %>
+    <h4 style="margin-top:1.2em">To release this sprint:</h4>
+    <ul class="pm-actions">
+      <% unless ps[:completion_ok] %>
+        <li>
+          <%= link_to "View closed issues →", project_pm_dashboard_closed_issues_path(@project, sprint_id: @selected_sprint.id) %>
+          — <b><%= ps[:closed] %>/<%= ps[:total] %> tasks done (<%= ps[:completion_rate] %>%)</b>
+          <span class="pm-target">need ≥ <%= RedmineGithub::SprintPmStats::COMPLETION_THRESHOLD %>%</span>
+        </li>
+      <% end %>
+      <% unless ps[:bug_rate_ok] %>
+        <li>
+          <b>Bug rate <%= ps[:bug_rate] %>%</b>
+          <span class="pm-target">need &lt; <%= RedmineGithub::SprintPmStats::BUG_RATE_THRESHOLD %>%</span>
+          — reduce open bugs in this sprint
+        </li>
+      <% end %>
+      <% unless qs[:execution_rate_ok] %>
+        <li>
+          <%= link_to "View untested issues →", project_pm_dashboard_failed_tests_path(@project, sprint_id: @selected_sprint.id) %>
+          — <b><%= qs[:tested] %>/<%= qs[:total] %> tested (<%= qs[:execution_rate] %>%)</b>
+          <span class="pm-target">need ≥ <%= RedmineGithub::QaGateStats::EXECUTION_RATE_THRESHOLD %>%</span>
+        </li>
+      <% end %>
+      <% unless qs[:blockers_ok] %>
+        <li>
+          <%= link_to "View #{qs[:open_blockers]} open #{'blocker'.pluralize(qs[:open_blockers])} →", project_pm_dashboard_blockers_path(@project, sprint_id: @selected_sprint.id) %>
+          <span class="pm-target">must be 0 to release</span>
+        </li>
+      <% end %>
+      <% if qa_pending %>
+        <li>
+          <b>QA sign-off required</b> &nbsp;
+          <%= button_to 'Approve', version_release_approvals_approve_qa_path(@project, @selected_sprint), method: :post, data: { confirm: 'Approve QA?' } %>
+          <%= button_to 'Reject',  version_release_approvals_reject_qa_path(@project, @selected_sprint),  method: :post, data: { confirm: 'Reject QA?' } %>
+        </li>
+      <% end %>
+      <% if pm_pending %>
+        <li>
+          <b>PM release approval required</b> &nbsp;
+          <%= button_to 'Approve Release', version_release_approvals_approve_pm_path(@project, @selected_sprint), method: :post, data: { confirm: 'Approve release to production?' } %>
+          <%= button_to 'Reject',          version_release_approvals_reject_pm_path(@project, @selected_sprint), method: :post, data: { confirm: 'Reject release?' } %>
+        </li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <%# ── Sprint metrics at a glance ── %>
+  <p style="margin-top:1.2em">
+    <b>Sprint metrics</b> &nbsp;
+    <%= link_to '⚙ Configure thresholds', edit_project_threshold_path(@project) %>
+  </p>
+  <table class="list">
+    <thead>
+      <tr>
+        <th>Tasks done</th>
+        <th>Completion</th>
+        <th>Bug rate</th>
+        <th>Delay rate</th>
+        <th>Avg cycle</th>
+        <th>Tests</th>
+        <th>Blockers</th>
+        <th>QA sign-off</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><%= ps[:closed] %> / <%= ps[:total] %></td>
+        <td class="<%= ps[:completion_ok] ? '' : 'pm-fail-cell' %>">
+          <%= link_to "#{ps[:completion_rate]}%", project_pm_dashboard_closed_issues_path(@project, sprint_id: @selected_sprint.id) %>
+          <small class="pm-target">≥ <%= RedmineGithub::SprintPmStats::COMPLETION_THRESHOLD %>%</small>
+        </td>
+        <td class="<%= ps[:bug_rate_ok] ? '' : 'pm-fail-cell' %>">
+          <%= ps[:bug_rate] %>% <small class="pm-target">&lt; <%= RedmineGithub::SprintPmStats::BUG_RATE_THRESHOLD %>%</small>
+        </td>
+        <td class="<%= ps[:delay_rate_ok] ? '' : 'pm-fail-cell' %>">
+          <%= link_to "#{ps[:delay_rate]}%", project_pm_dashboard_delayed_tasks_path(@project, sprint_id: @selected_sprint.id) %>
+          <small class="pm-target">&lt; <%= RedmineGithub::SprintPmStats::DELAY_RATE_THRESHOLD %>%</small>
+        </td>
+        <td><%= ps[:avg_cycle_days] ? "#{ps[:avg_cycle_days]}d" : '—' %></td>
+        <td class="<%= qs[:execution_rate_ok] ? '' : 'pm-fail-cell' %>">
+          <%= link_to "#{qs[:execution_rate]}%", project_pm_dashboard_failed_tests_path(@project, sprint_id: @selected_sprint.id) %>
+          <small class="pm-target">≥ <%= RedmineGithub::QaGateStats::EXECUTION_RATE_THRESHOLD %>%</small><br>
+          <small><%= qs[:passed] %> pass · <%= qs[:failed] %> fail · <%= qs[:blocked_count] %> blocked</small>
+        </td>
+        <td class="<%= qs[:blockers_ok] ? '' : 'pm-fail-cell' %>">
+          <%= link_to qs[:open_blockers].to_s, project_pm_dashboard_blockers_path(@project, sprint_id: @selected_sprint.id) %>
+          <small class="pm-target">(must be 0)</small>
+        </td>
+        <td>
+          <% case qs[:signoff_status] %>
+          <% when 'approved' %><span style="color:#2a7d2a">✓ Approved</span>
+          <% when 'rejected' %><span style="color:#c0392b">✗ Rejected</span>
+          <% else %>Pending<% end %>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <%# ── Blockers ── %>
+  <% blockers = @sprint_stats[:blockers] || [] %>
+  <% if blockers.any? %>
+    <h4 style="margin-top:1.2em"><%= l(:label_pm_blockers) %> (<%= blockers.size %>)</h4>
+    <table class="list">
+      <thead>
+        <tr><th>ID</th><th>Subject</th><th>Assignee</th><th>Open since</th><th>Duration</th></tr>
+      </thead>
+      <tbody>
+        <% blockers.sort_by { |b| b[:created_on] || Time.current }.each do |b| %>
+          <tr>
+            <td><%= link_to "##{b[:id]}", issue_path(b[:id]) %></td>
+            <td><%= link_to b[:subject], issue_path(b[:id]) %></td>
+            <td><%= b[:assignee] || '—' %></td>
+            <td><%= time_tag b[:created_on], format: :short if b[:created_on] %></td>
+            <td><span class="pm-duration"><%= distance_of_time_in_words(b[:created_on] || Time.current, Time.current) %></span></td>
+          </tr>
         <% end %>
-      </h3>
+      </tbody>
+    </table>
+  <% end %>
 
-      <div class="pm-metrics-grid">
+  <%# ── Trend analysis ── %>
+  <% trends = @trend_analysis[:sprints] %>
+  <% if trends.size > 1 %>
+    <h4 style="margin-top:1.2em"><%= l(:label_pm_trend_analysis) %></h4>
+    <table class="list">
+      <thead>
+        <tr><th>Sprint</th><th>Done</th><th>Completion</th><th>Avg cycle (days)</th><th>Bug rate</th></tr>
+      </thead>
+      <tbody>
+        <% trends.each do |s| %>
+          <tr>
+            <td><%= link_to s[:name], project_pm_dashboard_path(@project, sprint_id: s[:id]) %></td>
+            <td><%= s[:closed_issues] %> / <%= s[:total_issues] %></td>
+            <td><%= s[:completion_rate].round %>%</td>
+            <td><%= s[:cycle_time].round(1) %></td>
+            <td><%= s[:bug_rate].round(1) %>%</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
 
-        <%# ── Sprint Success Metrics ── %>
-        <div class="pm-metric-group">
-          <h4><%= l(:label_pm_success_metrics) %></h4>
-
-          <div class="pm-metric <%= ps[:completion_ok] ? 'pm-ok' : 'pm-fail' %>">
-            <%= link_to project_pm_dashboard_closed_issues_path(@project, sprint_id: @selected_sprint.id), class: 'pm-metric-link' do %>
-              <span class="pm-metric-label"><%= l(:label_pm_completion_rate) %></span>
-              <span class="pm-metric-value"><%= ps[:completion_rate] %>%</span>
-              <span class="pm-metric-target">(target ≥ <%= RedmineGithub::SprintPmStats::COMPLETION_THRESHOLD %>%)</span>
-              <span class="pm-metric-badge"><%= ps[:completion_ok] ? '✓' : '✗' %></span>
-            <% end %>
-          </div>
-
-          <div class="pm-metric <%= ps[:bug_rate_ok] ? 'pm-ok' : 'pm-fail' %>">
-            <span class="pm-metric-label"><%= l(:label_pm_bug_rate) %></span>
-            <span class="pm-metric-value"><%= ps[:bug_rate] %>%</span>
-            <span class="pm-metric-target">(target &lt; <%= RedmineGithub::SprintPmStats::BUG_RATE_THRESHOLD %>%)</span>
-            <span class="pm-metric-badge"><%= ps[:bug_rate_ok] ? '✓' : '✗' %></span>
-          </div>
-
-          <div class="pm-metric <%= ps[:delay_rate_ok] ? 'pm-ok' : 'pm-fail' %>">
-            <%= link_to project_pm_dashboard_delayed_tasks_path(@project, sprint_id: @selected_sprint.id), class: 'pm-metric-link' do %>
-              <span class="pm-metric-label"><%= l(:label_pm_delay_rate) %></span>
-              <span class="pm-metric-value"><%= ps[:delay_rate] %>%</span>
-              <span class="pm-metric-target">(target &lt; <%= RedmineGithub::SprintPmStats::DELAY_RATE_THRESHOLD %>%)</span>
-              <span class="pm-metric-badge"><%= ps[:delay_rate_ok] ? '✓' : '✗' %></span>
-            <% end %>
-          </div>
-
-          <div class="pm-metric pm-neutral">
-            <span class="pm-metric-label"><%= l(:label_pm_avg_cycle_time) %></span>
-            <span class="pm-metric-value"><%= ps[:avg_cycle_days] ? "#{ps[:avg_cycle_days]}d" : '—' %></span>
-            <span class="pm-metric-target"><%= ps[:closed] %> / <%= ps[:total] %> tasks closed</span>
-          </div>
-        </div>
-
-        <%# ── QA Release Gate ── %>
-        <div class="pm-metric-group">
-          <h4><%= l(:label_pm_qa_gate) %></h4>
-
-          <div class="pm-metric <%= qs[:execution_rate_ok] ? 'pm-ok' : 'pm-fail' %>">
-            <span class="pm-metric-label"><%= l(:label_pm_test_execution_rate) %></span>
-            <span class="pm-metric-value"><%= qs[:execution_rate] %>%</span>
-            <span class="pm-metric-target">(<%= qs[:tested] %>/<%= qs[:total] %> tested, target ≥ <%= RedmineGithub::QaGateStats::EXECUTION_RATE_THRESHOLD %>%)</span>
-            <span class="pm-metric-badge"><%= qs[:execution_rate_ok] ? '✓' : '✗' %></span>
-          </div>
-
-          <div class="pm-metric <%= qs[:blockers_ok] ? 'pm-ok' : 'pm-fail' %>">
-            <%= link_to project_pm_dashboard_blockers_path(@project, sprint_id: @selected_sprint.id), class: 'pm-metric-link' do %>
-              <span class="pm-metric-label"><%= l(:label_pm_open_blockers) %></span>
-              <span class="pm-metric-value"><%= qs[:open_blockers] %></span>
-              <span class="pm-metric-target">(target = 0)</span>
-              <span class="pm-metric-badge"><%= qs[:blockers_ok] ? '✓' : '✗' %></span>
-            <% end %>
-          </div>
-
-          <div class="pm-metric">
-            <%= link_to project_pm_dashboard_failed_tests_path(@project, sprint_id: @selected_sprint.id), class: 'pm-metric-link' do %>
-              <span class="pm-metric-label"><%= l(:label_pm_test_results) %></span>
-              <span class="pm-metric-value">
-                <span class="qa-badge qa-pass"><%= qs[:passed] %> Pass</span>
-                <span class="qa-badge qa-fail"><%= qs[:failed] %> Fail</span>
-                <span class="qa-badge qa-blocked"><%= qs[:blocked_count] %> Blocked</span>
-              </span>
-            <% end %>
-          </div>
-
-          <div class="pm-metric <%= qs[:signoff_ok] ? 'pm-ok' : (qs[:signoff_status] == 'rejected' ? 'pm-fail' : 'pm-pending') %>">
-            <span class="pm-metric-label"><%= l(:label_pm_qa_signoff) %></span>
-            <span class="pm-metric-value">
-              <% if qs[:signoff_status] == 'approved' %>
-                <span class="qa-badge qa-pass">✓ Approved</span>
-              <% elsif qs[:signoff_status] == 'rejected' %>
-                <span class="qa-badge qa-fail">✗ Rejected</span>
-              <% else %>
-                <span class="qa-badge">Pending</span>
-              <% end %>
-            </span>
-            <span class="pm-metric-badge"><%= qs[:signoff_ok] ? '✓' : '—' %></span>
-          </div>
-
-          <% if qs[:release_ready] %>
-            <div class="pm-release-go">
-              🚀 <%= l(:label_pm_release_ready) %>
-            </div>
-          <% else %>
-            <div class="pm-release-nogo">
-              <strong><%= l(:label_pm_release_blocked) %></strong>
-              <ul>
-                <%= content_tag(:li, l(:label_pm_need_execution_rate))  unless qs[:execution_rate_ok] %>
-                <%= content_tag(:li, l(:label_pm_need_no_blockers))     unless qs[:blockers_ok] %>
-                <%= content_tag(:li, l(:label_pm_need_qa_signoff))      unless qs[:signoff_ok] %>
-              </ul>
-            </div>
-          <% end %>
-        </div>
-
-      </div><%# /pm-metrics-grid %>
-
-      <%# ── Sprint Health Summary ── %>
-      <div class="pm-metric-group">
-        <h4><%= l(:label_pm_health_summary) %></h4>
-        <% hs = @health_summary %>
-
-        <div class="pm-metric pm-health-grid">
-          <div class="pm-health-item pm-health-<%= hs[:completion_rate][:status] %>">
-            <span class="pm-health-label">Completion</span>
-            <span class="pm-health-value"><%= hs[:completion_rate][:value] %>%</span>
-            <span class="pm-health-status"><%= hs[:completion_rate][:status].to_s.upcase %></span>
-          </div>
-
-          <div class="pm-health-item pm-health-<%= hs[:bug_rate][:status] %>">
-            <span class="pm-health-label">Bug Rate</span>
-            <span class="pm-health-value"><%= hs[:bug_rate][:value] %>%</span>
-            <span class="pm-health-status"><%= hs[:bug_rate][:status].to_s.upcase %></span>
-          </div>
-
-          <div class="pm-health-item pm-health-<%= hs[:delay_rate][:status] %>">
-            <span class="pm-health-label">Delay Rate</span>
-            <span class="pm-health-value"><%= hs[:delay_rate][:value] %>%</span>
-            <span class="pm-health-status"><%= hs[:delay_rate][:status].to_s.upcase %></span>
-          </div>
-
-          <div class="pm-health-item pm-health-<%= hs[:cycle_time][:status] %>">
-            <span class="pm-health-label">Avg Cycle Time</span>
-            <span class="pm-health-value"><%= number_with_precision(hs[:cycle_time][:value] || 0, precision: 1) %> days</span>
-            <span class="pm-health-status"><%= hs[:cycle_time][:status].to_s.upcase %></span>
-          </div>
-        </div>
-
-        <div class="pm-health-overall pm-health-<%= hs[:overall_status] %>">
-          <strong>Overall Sprint Health: <%= hs[:overall_status].to_s.upcase %></strong>
-          <p>Based on configurable thresholds. <%= link_to 'Configure', edit_project_threshold_path(@project) %></p>
-        </div>
-      </div>
-
-      <%# ── Release Readiness Gate ── %>
-      <div class="pm-metric-group">
-        <h4><%= l(:label_pm_release_gate) %></h4>
-        <% rg = @release_gate %>
-        
-        <div class="pm-release-gate pm-gate-<%= rg[:status] %>">
-          <div class="pm-gate-header">
-            <span class="pm-gate-icon <%= rg[:status] %>">
-              <% if rg[:ready] %>
-                ✓ READY FOR PRODUCTION
-              <% elsif rg[:risky] %>
-                ⚠ RISKY
-              <% else %>
-                ✗ NOT READY
-              <% end %>
-            </span>
-          </div>
-
-          <div class="pm-gate-signals">
-            <h5><%= l(:label_pm_decision_signals) %></h5>
-            <table class="pm-gate-signal-table">
-              <% rg[:signals].each do |key, signal| %>
-                <tr class="pm-signal <%= signal[:ok] ? 'pm-signal-ok' : 'pm-signal-fail' %>">
-                  <td class="pm-signal-icon">
-                    <%= signal[:ok] ? '✓' : '✗' %>
-                  </td>
-                  <td class="pm-signal-label"><%= signal[:label] %></td>
-                  <td class="pm-signal-value">
-                    <% if key == :execution_rate %>
-                      <%= number_with_precision(signal[:rate], precision: 1) %>%
-                    <% elsif key == :blockers %>
-                      <%= signal[:count] %> open
-                    <% elsif key == :qa_signoff %>
-                      <%= signal[:status]&.capitalize || 'Pending' %>
-                    <% elsif key == :health_status %>
-                      <%= signal[:status]&.to_s&.upcase %>
-                    <% end %>
-                  </td>
-                </tr>
-              <% end %>
-            </table>
-          </div>
-
-          <div class="pm-gate-rules">
-            <h5><%= l(:label_pm_release_rules) %></h5>
-            <ul>
-              <% rg[:rules].each do |rule| %>
-                <li>
-                  <strong><%= rule[:rule] %></strong><%= rule[:required] ? ' (REQUIRED)' : '' %>
-                  <br />
-                  <span class="pm-rule-description"><%= rule[:description] %></span>
-                </li>
-              <% end %>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <%# ── Approval Workflow ── %>
-      <% workflow = @approval_workflow %>
-      <div class="pm-metric-group">
-        <h4><%= l(:label_pm_approval_workflow) %></h4>
-
-        <div class="pm-approval-chain">
-          <%# QA Sign-off %>
-          <div class="pm-approval-step pm-approval-qa pm-step-<%= workflow[:qa_approval].status %>">
-            <span class="pm-step-number">1</span>
-            <span class="pm-step-name">QA Sign-off</span>
-            <span class="pm-step-status <%= workflow[:qa_approval].status %>">
-              <% case workflow[:qa_approval].status %>
-              <% when 'approved' %>
-                ✓ Approved by <%= workflow[:qa_approval].user.name %>
-              <% when 'rejected' %>
-                ✗ Rejected by <%= workflow[:qa_approval].user.name %>
-              <% else %>
-                Pending
-              <% end %>
-            </span>
-            <% if workflow[:qa_approval].pending? %>
-              <div class="pm-approval-actions">
-                <%= button_to 'Approve', version_release_approvals_approve_qa_path(@project, @selected_sprint), method: :post, class: 'btn btn-sm btn-success', data: { confirm: 'Approve QA?' } %>
-                <%= button_to 'Reject', version_release_approvals_reject_qa_path(@project, @selected_sprint), method: :post, class: 'btn btn-sm btn-danger', data: { confirm: 'Reject QA?' } %>
-              </div>
-            <% end %>
-          </div>
-
-          <%# PM Approval %>
-          <div class="pm-approval-step pm-approval-pm pm-step-<%= workflow[:pm_approval].status %>">
-            <span class="pm-step-number">2</span>
-            <span class="pm-step-name">PM Release</span>
-            <span class="pm-step-status <%= workflow[:pm_approval].status %>">
-              <% case workflow[:pm_approval].status %>
-              <% when 'approved' %>
-                ✓ Approved by <%= workflow[:pm_approval].user.name %>
-              <% when 'rejected' %>
-                ✗ Rejected by <%= workflow[:pm_approval].user.name %>
-              <% else %>
-                <% if workflow[:qa_approval].approved? %>
-                  Ready for PM approval
-                <% else %>
-                  Waiting for QA sign-off
-                <% end %>
-              <% end %>
-            </span>
-            <% if workflow[:pm_approval].pending? && workflow[:qa_approval].approved? %>
-              <div class="pm-approval-actions">
-                <%= button_to 'Approve Release', version_release_approvals_approve_pm_path(@project, @selected_sprint), method: :post, class: 'btn btn-sm btn-success', data: { confirm: 'Approve release to production?' } %>
-                <%= button_to 'Reject', version_release_approvals_reject_pm_path(@project, @selected_sprint), method: :post, class: 'btn btn-sm btn-danger', data: { confirm: 'Reject release?' } %>
-              </div>
-            <% end %>
-          </div>
-
-          <%# Chain Status %>
-          <div class="pm-approval-chain-status">
-            <% if workflow[:chain_complete] %>
-              <span class="pm-chain-ready">✓ Approval chain complete. Ready to deploy to production.</span>
-            <% elsif workflow[:qa_approval].approved? %>
-              <span class="pm-chain-warning">⚠ Waiting for PM approval to proceed with release.</span>
-            <% else %>
-              <span class="pm-chain-pending">○ Waiting for QA sign-off to begin release chain.</span>
-            <% end %>
-          </div>
-        </div>
-      </div>
-
-      <%# ── Audit Trail ── %>
-      <% timeline = @audit_trail[:timeline] %>
-      <% if timeline.any? %>
-        <div class="pm-audit-trail">
-          <h4><%= l(:label_pm_audit_trail) %></h4>
-          <div class="pm-timeline">
-            <% timeline.each do |event| %>
-              <div class="pm-timeline-event pm-event-<%= event[:status] %>">
-                <div class="pm-event-marker <%= event[:status] %>"></div>
-                <div class="pm-event-content">
-                  <div class="pm-event-header">
-                    <span class="pm-event-user"><strong><%= event[:user] %></strong></span>
-                    <span class="pm-event-role">(<%= event[:role] %>)</span>
-                    <span class="pm-event-action <%= event[:action].downcase %>"><%= event[:action] %></span>
-                    <span class="pm-event-time"><%= time_ago_in_words(event[:timestamp]) %> ago</span>
-                  </div>
-                  <% if event[:notes].present? %>
-                    <div class="pm-event-notes"><%= event[:notes] %></div>
-                  <% end %>
-                  <div class="pm-event-timestamp"><%= time_tag event[:timestamp], format: :short %></div>
-                </div>
-              </div>
-            <% end %>
-          </div>
-        </div>
+  <%# ── Audit trail ── %>
+  <% timeline = @audit_trail[:timeline] %>
+  <% if timeline.any? %>
+    <h4 style="margin-top:1.2em"><%= l(:label_pm_audit_trail) %></h4>
+    <ul class="pm-audit">
+      <% timeline.each do |e| %>
+        <li>
+          <b><%= e[:user] %></b> (<%= e[:role] %>) <%= e[:action] %>d
+          <% if e[:notes].present? %>&nbsp;&mdash;&nbsp;<em>"<%= e[:notes] %>"</em><% end %>
+          &nbsp;<span class="pm-duration"><%= time_ago_in_words(e[:timestamp]) %> ago</span>
+          <small>(<%= time_tag e[:timestamp], format: :short %>)</small>
+        </li>
       <% end %>
-
-      <%# ── Trend Analysis ── %>
-      <% trends = @trend_analysis[:sprints] %>
-      <% if trends.any? %>
-        <div class="pm-trend-analysis">
-          <h4><%= l(:label_pm_trend_analysis) %></h4>
-          
-          <div class="pm-trend-summary">
-            <div class="pm-trend-metric">
-              <span class="pm-trend-label">Completion Rate</span>
-              <span class="pm-trend-value"><%= (@trend_analysis[:avg_completion] * 100).round %>%</span>
-              <span class="pm-trend-direction <%= "pm-trend-#{@trend_analysis.send(:trend_direction, :completion)}" %>">
-                <%= @trend_analysis.send(:trend_icon, @trend_analysis.send(:trend_direction, :completion)) %>
-              </span>
-            </div>
-            <div class="pm-trend-metric">
-              <span class="pm-trend-label">Avg Cycle Time</span>
-              <span class="pm-trend-value"><%= @trend_analysis[:avg_cycle_time].round(1) %> days</span>
-              <span class="pm-trend-direction <%= "pm-trend-#{@trend_analysis.send(:trend_direction, :cycle_time)}" %>">
-                <%= @trend_analysis.send(:trend_icon, @trend_analysis.send(:trend_direction, :cycle_time)) %>
-              </span>
-            </div>
-            <div class="pm-trend-metric">
-              <span class="pm-trend-label">Bug Rate</span>
-              <span class="pm-trend-value"><%= (@trend_analysis[:avg_bug_rate] * 100).round(1) %>%</span>
-              <span class="pm-trend-direction <%= "pm-trend-#{@trend_analysis.send(:trend_direction, :bug_rate)}" %>">
-                <%= @trend_analysis.send(:trend_icon, @trend_analysis.send(:trend_direction, :bug_rate)) %>
-              </span>
-            </div>
-          </div>
-
-          <div class="pm-trend-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Sprint</th>
-                  <th>Completed</th>
-                  <th>Completion %</th>
-                  <th>Cycle Time (days)</th>
-                  <th>Bug Rate %</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% trends.each do |sprint| %>
-                  <tr>
-                    <td><strong><%= link_to sprint[:name], project_pm_dashboard_path(@project, sprint_id: sprint[:id]) %></strong></td>
-                    <td><%= sprint[:closed_issues] %>/<%= sprint[:total_issues] %></td>
-                    <td><span class="pm-metric-value"><%= (sprint[:completion_rate] * 100).round %>%</span></td>
-                    <td><%= sprint[:cycle_time].round(1) %></td>
-                    <td><span class="pm-metric-value"><%= (sprint[:bug_rate] * 100).round(1) %>%</span></td>
-                  </tr>
-                <% end %>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      <% end %>
-
-      <%# ── Blocker Visibility ── %>
-      <% blockers = @sprint_stats[:blockers] || [] %>
-      <% if blockers.any? %>
-        <div class="pm-blocker-visibility">
-          <h4><%= l(:label_pm_blockers) %></h4>
-          <table class="pm-blocker-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Subject</th>
-                <th>Assignee</th>
-                <th>Blocked Since</th>
-                <th>Duration</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% blockers.sort_by { |b| b[:created_on] || Time.current }.each do |blocker| %>
-                <tr>
-                  <td><%= link_to "##{blocker[:id]}", issue_path(blocker[:id]) %></td>
-                  <td><%= link_to blocker[:subject], issue_path(blocker[:id]) %></td>
-                  <td><%= blocker[:assignee] %></td>
-                  <td><%= time_tag blocker[:created_on], format: :short if blocker[:created_on] %></td>
-                  <td><span class="pm-duration"><%= distance_of_time_in_words(blocker[:created_on] || Time.current, Time.current) %></span></td>
-                </tr>
-              <% end %>
-            </tbody>
-          </table>
-        </div>
-      <% end %>
+    </ul>
+  <% end %>
 
 <% end %>

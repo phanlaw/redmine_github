@@ -31,8 +31,8 @@ module RedmineGithub
           completion_rate: stats[:completion_rate] || 0,
           cycle_time: stats[:avg_cycle_time] || 0,
           bug_rate: stats[:bug_rate] || 0,
-          closed_issues: stats[:closed_count] || 0,
-          total_issues: stats[:total_count] || 0,
+          closed_issues: stats[:closed] || 0,
+          total_issues: stats[:total] || 0,
           bug_count: stats[:bug_count] || 0
         }
       end
