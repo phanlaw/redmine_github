@@ -9,13 +9,15 @@ RSpec.describe RedmineGithub::SprintPmStats do
     version
   end
 
-  def build_issue(closed:, tracker_name:, due_date: nil, closed_on: nil, start_date: nil)
+  def build_issue(closed:, tracker_name:, due_date: nil, closed_on: nil, start_date: nil, priority_id: nil, assigned_to: nil)
     status   = instance_double(IssueStatus, is_closed?: closed)
     tracker  = instance_double(Tracker, name: tracker_name)
     priority = instance_double(IssuePriority)
+    assigned = assigned_to || instance_double(User, name: 'Unassigned')
     instance_double(Issue,
-      status: status, tracker: tracker, priority: priority,
-      due_date: due_date, closed_on: closed_on, start_date: start_date)
+      status: status, tracker: tracker, priority: priority, priority_id: priority_id,
+      due_date: due_date, closed_on: closed_on, start_date: start_date,
+      assigned_to: assigned, created_on: Date.today)
   end
 
   describe '#call' do
