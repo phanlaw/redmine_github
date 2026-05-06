@@ -22,7 +22,7 @@ module RedmineGithub
 
     def closed_issues
       authorize_sprint
-      issues = @selected_sprint.fixed_issues.where(statuses: { is_closed: true }).includes(:status, :tracker)
+      issues = @selected_sprint.fixed_issues.joins(:status).where(issue_statuses: { is_closed: true }).includes(:status, :tracker)
       render_drill_down(issues, "Closed Issues (#{issues.count})")
     end
 
