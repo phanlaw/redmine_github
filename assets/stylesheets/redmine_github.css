@@ -623,3 +623,151 @@ a.icon-pr:hover {
   color: #78350f;
   margin-bottom: 0.5em;
 }
+
+/* ── PM Release Readiness Gate ─────────────────────────────────────── */
+.pm-release-gate {
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.pm-gate-ready {
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+
+.pm-gate-risky {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.pm-gate-blocked {
+  border-color: #ef4444;
+  background: #fef2f2;
+}
+
+.pm-gate-header {
+  padding: 1.5em;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+  text-align: center;
+  font-size: 1.3em;
+  font-weight: 700;
+}
+
+.pm-gate-ready .pm-gate-header {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.pm-gate-risky .pm-gate-header {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.05);
+}
+
+.pm-gate-blocked .pm-gate-header {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.pm-gate-icon {
+  display: inline-block;
+  padding: 0.5em 1em;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.pm-gate-signals,
+.pm-gate-rules {
+  padding: 1.5em;
+  border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.pm-gate-signals h5,
+.pm-gate-rules h5 {
+  margin: 0 0 1em;
+  font-size: 0.95em;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #666;
+}
+
+.pm-gate-signal-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+.pm-signal {
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.pm-signal.pm-signal-ok {
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.pm-signal.pm-signal-fail {
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.pm-signal-icon {
+  width: 30px;
+  text-align: center;
+  font-weight: 700;
+  padding: 0.5em;
+}
+
+.pm-signal.pm-signal-ok .pm-signal-icon {
+  color: #22c55e;
+}
+
+.pm-signal.pm-signal-fail .pm-signal-icon {
+  color: #ef4444;
+}
+
+.pm-signal-label {
+  padding: 0.5em;
+  font-weight: 500;
+}
+
+.pm-signal-value {
+  padding: 0.5em;
+  text-align: right;
+  font-weight: 600;
+  color: #333;
+}
+
+.pm-gate-rules ul {
+  margin: 0;
+  padding-left: 1.5em;
+  list-style: none;
+}
+
+.pm-gate-rules li {
+  margin-bottom: 1em;
+  padding-left: 1.5em;
+  position: relative;
+}
+
+.pm-gate-rules li:before {
+  content: "▪";
+  position: absolute;
+  left: 0;
+  color: #666;
+}
+
+.pm-gate-rules strong {
+  display: block;
+  color: #333;
+}
+
+.pm-rule-description {
+  display: block;
+  margin-top: 0.3em;
+  font-size: 0.9em;
+  color: #666;
+  font-weight: normal;
+}
+
+.pm-gate-rules li:last-child {
+  margin-bottom: 0;
+}

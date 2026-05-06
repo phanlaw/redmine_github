@@ -179,6 +179,64 @@
         </div>
       </div>
 
+      <%# ── Release Readiness Gate ── %>
+      <div class="pm-metric-group">
+        <h4><%= l(:label_pm_release_gate) %></h4>
+        <% rg = @release_gate %>
+        
+        <div class="pm-release-gate pm-gate-<%= rg[:status] %>">
+          <div class="pm-gate-header">
+            <span class="pm-gate-icon <%= rg[:status] %>">
+              <% if rg[:ready] %>
+                ✓ READY FOR PRODUCTION
+              <% elsif rg[:risky] %>
+                ⚠ RISKY
+              <% else %>
+                ✗ NOT READY
+              <% end %>
+            </span>
+          </div>
+
+          <div class="pm-gate-signals">
+            <h5><%= l(:label_pm_decision_signals) %></h5>
+            <table class="pm-gate-signal-table">
+              <% rg[:signals].each do |key, signal| %>
+                <tr class="pm-signal <%= signal[:ok] ? 'pm-signal-ok' : 'pm-signal-fail' %>">
+                  <td class="pm-signal-icon">
+                    <%= signal[:ok] ? '✓' : '✗' %>
+                  </td>
+                  <td class="pm-signal-label"><%= signal[:label] %></td>
+                  <td class="pm-signal-value">
+                    <% if key == :execution_rate %>
+                      <%= number_with_precision(signal[:rate], precision: 1) %>%
+                    <% elsif key == :blockers %>
+                      <%= signal[:count] %> open
+                    <% elsif key == :qa_signoff %>
+                      <%= signal[:status]&.capitalize || 'Pending' %>
+                    <% elsif key == :health_status %>
+                      <%= signal[:status]&.to_s&.upcase %>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            </table>
+          </div>
+
+          <div class="pm-gate-rules">
+            <h5><%= l(:label_pm_release_rules) %></h5>
+            <ul>
+              <% rg[:rules].each do |rule| %>
+                <li>
+                  <strong><%= rule[:rule] %></strong><%= rule[:required] ? ' (REQUIRED)' : '' %>
+                  <br />
+                  <span class="pm-rule-description"><%= rule[:description] %></span>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       <%# ── Blocker Visibility ── %>
       <% blockers = @sprint_stats[:blockers] || [] %>
       <% if blockers.any? %>
