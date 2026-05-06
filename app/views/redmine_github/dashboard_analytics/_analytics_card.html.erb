@@ -1,0 +1,205 @@
+<div class="pm-analytics-card">
+  <div class="pm-analytics-summary">
+    <div class="pm-summary-stat">
+      <span class="pm-stat-label">Page Views</span>
+      <span class="pm-stat-value"><%= analytics[:page_views] %></span>
+    </div>
+    <div class="pm-summary-stat">
+      <span class="pm-stat-label">Active Users</span>
+      <span class="pm-stat-value"><%= analytics[:active_users] %></span>
+    </div>
+    <div class="pm-summary-stat">
+      <span class="pm-stat-label">Total Events</span>
+      <span class="pm-stat-value"><%= analytics[:usage_summary][:total_events] %></span>
+    </div>
+    <div class="pm-summary-stat">
+      <span class="pm-stat-label">Avg/User</span>
+      <span class="pm-stat-value"><%= analytics[:usage_summary][:avg_events_per_user] %></span>
+    </div>
+  </div>
+
+  <%# Drill-downs %>
+  <% if analytics[:drill_downs].any? %>
+    <div class="pm-analytics-section">
+      <h4>Drill-down Activity</h4>
+      <div class="pm-analytics-breakdown">
+        <% analytics[:drill_downs].each do |type, count| %>
+          <div class="pm-breakdown-item">
+            <span class="pm-item-label"><%= type.titleize %></span>
+            <span class="pm-item-bar">
+              <span class="pm-item-count" style="width: <%= (count.to_f / analytics[:drill_downs].values.max * 100).round %>%"></span>
+            </span>
+            <span class="pm-item-value"><%= count %></span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Approval Actions %>
+  <% if analytics[:approval_actions].any? %>
+    <div class="pm-analytics-section">
+      <h4>Approval Activity</h4>
+      <div class="pm-analytics-breakdown">
+        <% analytics[:approval_actions].each do |action, count| %>
+          <div class="pm-breakdown-item">
+            <span class="pm-item-label"><%= action.capitalize %> Actions</span>
+            <span class="pm-item-bar">
+              <span class="pm-item-count" style="width: <%= (count.to_f / analytics[:approval_actions].values.max * 100).round %>%"></span>
+            </span>
+            <span class="pm-item-value"><%= count %></span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <%# Top Users %>
+  <% if analytics[:top_users].any? %>
+    <div class="pm-analytics-section">
+      <h4>Top Users (<%= analytics[:period_label] %>)</h4>
+      <table class="pm-analytics-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% analytics[:top_users].each_with_index do |user, idx| %>
+            <tr>
+              <td>
+                <span class="pm-rank"><%= idx + 1 %></span>
+                <%= user[:user_name] %>
+              </td>
+              <td><strong><%= user[:actions] %></strong></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>
+
+<style>
+  .pm-analytics-card {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 1.5em;
+  }
+
+  .pm-analytics-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1em;
+    margin-bottom: 2em;
+    padding: 1em;
+    background: #fff;
+    border-radius: 4px;
+  }
+
+  .pm-summary-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    text-align: center;
+  }
+
+  .pm-stat-label {
+    font-size: 0.85em;
+    color: #666;
+  }
+
+  .pm-stat-value {
+    font-size: 2em;
+    font-weight: 700;
+    color: #333;
+  }
+
+  .pm-analytics-section {
+    margin-bottom: 2em;
+    padding: 1em;
+    background: #fff;
+    border-radius: 4px;
+  }
+
+  .pm-analytics-section h4 {
+    margin-top: 0;
+    margin-bottom: 1em;
+    color: #333;
+  }
+
+  .pm-analytics-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+  }
+
+  .pm-breakdown-item {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+  }
+
+  .pm-item-label {
+    min-width: 120px;
+    font-size: 0.9em;
+    color: #333;
+  }
+
+  .pm-item-bar {
+    flex: 1;
+    height: 24px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .pm-item-count {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  }
+
+  .pm-item-value {
+    min-width: 50px;
+    text-align: right;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .pm-analytics-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .pm-analytics-table th {
+    background: #f3f4f6;
+    padding: 0.75em;
+    text-align: left;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .pm-analytics-table td {
+    padding: 0.75em;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .pm-rank {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    background: #dbeafe;
+    border-radius: 50%;
+    font-weight: 600;
+    color: #1e40af;
+    margin-right: 0.5em;
+  }
+</style>

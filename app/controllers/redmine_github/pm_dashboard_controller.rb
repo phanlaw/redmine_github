@@ -11,6 +11,8 @@ module RedmineGithub
       @versions = @project.versions.order(created_on: :desc)
 
       if @selected_sprint
+        DashboardAnalytic.track_page_view(@project, User.current)
+        
         @sprint_stats = RedmineGithub::SprintPmStats.new(@selected_sprint).call
         @qa_stats = RedmineGithub::QaGateStats.new(@selected_sprint).call
         @metric_snapshot = MetricSnapshot.for_version(@selected_sprint).latest.first
@@ -31,12 +33,14 @@ module RedmineGithub
 
     def closed_issues
       authorize_sprint
+      DashboardAnalytic.track_drill_down(@project, 'closed_issues', User.current)
       issues = @selected_sprint.fixed_issues.joins(:status).where(issue_statuses: { is_closed: true }).includes(:status, :tracker)
       render_drill_down(issues, "Closed Issues (#{issues.count})")
     end
 
     def blockers
       authorize_sprint
+      DashboardAnalytic.track_drill_down(@project, 'blockers', User.current)
       blocker_statuses = IssueStatus.where(is_closed: false)
       blocker_priorities = IssuePriority.where(name: %w[High Immediate])
       issues = @selected_sprint.fixed_issues.where(status_id: blocker_statuses.pluck(:id), priority_id: blocker_priorities.pluck(:id))
@@ -45,6 +49,7 @@ module RedmineGithub
 
     def delayed_tasks
       authorize_sprint
+      DashboardAnalytic.track_drill_down(@project, 'delayed_tasks', User.current)
       issues = @selected_sprint.fixed_issues.includes(:status).select do |i|
         i.status.is_closed? && i.due_date && i.closed_on && i.closed_on.to_date > i.due_date
       end
@@ -53,6 +58,7 @@ module RedmineGithub
 
     def failed_tests
       authorize_sprint
+      DashboardAnalytic.track_drill_down(@project, 'failed_tests', User.current)
       results = IssueTestResult.where(issue_id: @selected_sprint.fixed_issues.pluck(:id), result: 'failed')
       issues = Issue.where(id: results.pluck(:issue_id))
       render_drill_down(issues, "Failed Tests (#{issues.count})")

@@ -10,6 +10,7 @@ module RedmineGithub
       workflow = RedmineGithub::ApprovalWorkflow.new(@version)
       begin
         workflow.approve_as_qa(User.current, params[:notes])
+        DashboardAnalytic.track_approval_action(@project, 'approve', 'qa', User.current)
         redirect_to project_pm_dashboard_path(@project, sprint_id: @version.id),
                     notice: 'QA approval recorded.'
       rescue StandardError => e
@@ -22,6 +23,7 @@ module RedmineGithub
       workflow = RedmineGithub::ApprovalWorkflow.new(@version)
       begin
         workflow.reject_as_qa(User.current, params[:notes])
+        DashboardAnalytic.track_approval_action(@project, 'reject', 'qa', User.current)
         redirect_to project_pm_dashboard_path(@project, sprint_id: @version.id),
                     alert: 'QA approval rejected.'
       rescue StandardError => e
@@ -34,6 +36,7 @@ module RedmineGithub
       workflow = RedmineGithub::ApprovalWorkflow.new(@version)
       begin
         workflow.approve_as_pm(User.current, params[:notes])
+        DashboardAnalytic.track_approval_action(@project, 'approve', 'pm', User.current)
         redirect_to project_pm_dashboard_path(@project, sprint_id: @version.id),
                     notice: 'PM approval recorded. Sprint ready for production.'
       rescue StandardError => e
@@ -46,6 +49,7 @@ module RedmineGithub
       workflow = RedmineGithub::ApprovalWorkflow.new(@version)
       begin
         workflow.reject_as_pm(User.current, params[:notes])
+        DashboardAnalytic.track_approval_action(@project, 'reject', 'pm', User.current)
         redirect_to project_pm_dashboard_path(@project, sprint_id: @version.id),
                     alert: 'PM approval rejected.'
       rescue StandardError => e

@@ -1,0 +1,76 @@
+<% content_for :title do %>Dashboard Analytics - <%= @project.name %><% end %>
+
+<div class="pm-container">
+  <h2><%= l(:label_pm_dashboard_analytics) %></h2>
+  
+  <div class="pm-analytics-tabs">
+    <div class="pm-analytics-tab pm-tab-active" data-period="week">
+      <%= link_to "This Week", "#", class: "pm-tab-link" %>
+    </div>
+    <div class="pm-analytics-tab" data-period="month">
+      <%= link_to "This Month", "#", class: "pm-tab-link" %>
+    </div>
+    <div class="pm-analytics-tab" data-period="all">
+      <%= link_to "All Time", "#", class: "pm-tab-link" %>
+    </div>
+  </div>
+
+  <%# Week Analytics %>
+  <div class="pm-analytics-period pm-period-week">
+    <%= render 'analytics_card', analytics: @analytics_week %>
+  </div>
+
+  <%# Month Analytics %>
+  <div class="pm-analytics-period pm-period-month" style="display: none;">
+    <%= render 'analytics_card', analytics: @analytics_month %>
+  </div>
+
+  <%# All Time Analytics %>
+  <div class="pm-analytics-period pm-period-all" style="display: none;">
+    <%= render 'analytics_card', analytics: @analytics_all %>
+  </div>
+</div>
+
+<style>
+  .pm-analytics-tabs {
+    display: flex;
+    gap: 1em;
+    margin-bottom: 2em;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .pm-analytics-tab {
+    padding: 0.75em 1em;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
+
+  .pm-analytics-tab.pm-tab-active {
+    border-bottom-color: #3b82f6;
+  }
+
+  .pm-analytics-tab a {
+    text-decoration: none;
+    color: #333;
+  }
+
+  .pm-analytics-tab.pm-tab-active a {
+    font-weight: 600;
+    color: #3b82f6;
+  }
+</style>
+
+<script>
+  document.querySelectorAll('.pm-analytics-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      const period = this.dataset.period;
+      
+      document.querySelectorAll('.pm-analytics-tab').forEach(t => t.classList.remove('pm-tab-active'));
+      this.classList.add('pm-tab-active');
+      
+      document.querySelectorAll('.pm-analytics-period').forEach(p => {
+        p.style.display = p.classList.contains(`pm-period-${period}`) ? 'block' : 'none';
+      });
+    });
+  });
+</script>
