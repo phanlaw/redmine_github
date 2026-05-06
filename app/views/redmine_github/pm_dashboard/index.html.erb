@@ -2,20 +2,37 @@
   <%= stylesheet_link_tag 'redmine_github', plugin: :redmine_github %>
 <% end %>
 
-<h2><%= l(:label_pm_dashboard) %> — <%= @project.name %></h2>
+<h2><%= l(:label_pm_dashboard) %></h2>
+
+<div class="pm-selection-bar">
+  <% form_with local: true do |f| %>
+    <div class="pm-selection-group">
+      <label><%= l(:label_pm_project) %></label>
+      <%= select_tag :project_id, 
+          options_from_collection_for_select(Project.visible.sorted, :id, :name, @project.id),
+          onchange: "window.location = this.value ? '/projects/' + this.value + '/pm_dashboard' : '#'" %>
+    </div>
+
+    <div class="pm-selection-group">
+      <label><%= l(:label_pm_sprint) %></label>
+      <%= select_tag :sprint_id,
+          options_from_collection_for_select(@versions, :id, :name, @selected_sprint&.id),
+          onchange: "window.location = '?sprint_id=' + this.value;" %>
+    </div>
+  <% end %>
+</div>
 
 <% if @versions.empty? %>
   <p class="nodata"><%= l(:label_no_data) %></p>
+<% elsif !@selected_sprint %>
+  <p class="notice">Select a sprint to view dashboard.</p>
 <% else %>
-  <% @versions.each do |version| %>
-    <% ps = @sprint_stats[version.id] %>
-    <% qs = @qa_stats[version.id] %>
-
-    <div class="pm-sprint-card">
+  <% ps = @sprint_stats %>
+  <% qs = @qa_stats %>
       <h3>
-        <%= link_to version.name, settings_project_path(@project, tab: 'versions') %>
-        <span class="pm-sprint-status <%= version.status == 'open' ? 'pm-status-open' : 'pm-status-closed' %>">
-          <%= version.status.upcase %>
+        <%= link_to @selected_sprint.name, settings_project_path(@project, tab: 'versions') %>
+        <span class="pm-sprint-status <%= @selected_sprint.status == 'open' ? 'pm-status-open' : 'pm-status-closed' %>">
+          <%= @selected_sprint.status.upcase %>
         </span>
         <% if qs[:release_ready] %>
           <span class="pm-gate-badge pm-gate-go">✓ READY FOR PRODUCTION</span>
@@ -31,10 +48,12 @@
           <h4><%= l(:label_pm_success_metrics) %></h4>
 
           <div class="pm-metric <%= ps[:completion_ok] ? 'pm-ok' : 'pm-fail' %>">
-            <span class="pm-metric-label"><%= l(:label_pm_completion_rate) %></span>
-            <span class="pm-metric-value"><%= ps[:completion_rate] %>%</span>
-            <span class="pm-metric-target">(target ≥ <%= RedmineGithub::SprintPmStats::COMPLETION_THRESHOLD %>%)</span>
-            <span class="pm-metric-badge"><%= ps[:completion_ok] ? '✓' : '✗' %></span>
+            <%= link_to project_pm_dashboard_closed_issues_path(@project, sprint_id: @selected_sprint.id), class: 'pm-metric-link' do %>
+              <span class="pm-metric-label"><%= l(:label_pm_completion_rate) %></span>
+              <span class="pm-metric-value"><%= ps[:completion_rate] %>%</span>
+              <span class="pm-metric-target">(target ≥ <%= RedmineGithub::SprintPmStats::COMPLETION_THRESHOLD %>%)</span>
+              <span class="pm-metric-badge"><%= ps[:completion_ok] ? '✓' : '✗' %></span>
+            <% end %>
           </div>
 
           <div class="pm-metric <%= ps[:bug_rate_ok] ? 'pm-ok' : 'pm-fail' %>">
@@ -45,10 +64,12 @@
           </div>
 
           <div class="pm-metric <%= ps[:delay_rate_ok] ? 'pm-ok' : 'pm-fail' %>">
-            <span class="pm-metric-label"><%= l(:label_pm_delay_rate) %></span>
-            <span class="pm-metric-value"><%= ps[:delay_rate] %>%</span>
-            <span class="pm-metric-target">(target &lt; <%= RedmineGithub::SprintPmStats::DELAY_RATE_THRESHOLD %>%)</span>
-            <span class="pm-metric-badge"><%= ps[:delay_rate_ok] ? '✓' : '✗' %></span>
+            <%= link_to project_pm_dashboard_delayed_tasks_path(@project, sprint_id: @selected_sprint.id), class: 'pm-metric-link' do %>
+              <span class="pm-metric-label"><%= l(:label_pm_delay_rate) %></span>
+              <span class="pm-metric-value"><%= ps[:delay_rate] %>%</span>
+              <span class="pm-metric-target">(target &lt; <%= RedmineGithub::SprintPmStats::DELAY_RATE_THRESHOLD %>%)</span>
+              <span class="pm-metric-badge"><%= ps[:delay_rate_ok] ? '✓' : '✗' %></span>
+            <% end %>
           </div>
 
           <div class="pm-metric pm-neutral">
@@ -70,19 +91,23 @@
           </div>
 
           <div class="pm-metric <%= qs[:blockers_ok] ? 'pm-ok' : 'pm-fail' %>">
-            <span class="pm-metric-label"><%= l(:label_pm_open_blockers) %></span>
-            <span class="pm-metric-value"><%= qs[:open_blockers] %></span>
-            <span class="pm-metric-target">(target = 0)</span>
-            <span class="pm-metric-badge"><%= qs[:blockers_ok] ? '✓' : '✗' %></span>
+            <%= link_to project_pm_dashboard_blockers_path(@project, sprint_id: @selected_sprint.id), class: 'pm-metric-link' do %>
+              <span class="pm-metric-label"><%= l(:label_pm_open_blockers) %></span>
+              <span class="pm-metric-value"><%= qs[:open_blockers] %></span>
+              <span class="pm-metric-target">(target = 0)</span>
+              <span class="pm-metric-badge"><%= qs[:blockers_ok] ? '✓' : '✗' %></span>
+            <% end %>
           </div>
 
           <div class="pm-metric">
-            <span class="pm-metric-label"><%= l(:label_pm_test_results) %></span>
-            <span class="pm-metric-value">
-              <span class="qa-badge qa-pass"><%= qs[:passed] %> Pass</span>
-              <span class="qa-badge qa-fail"><%= qs[:failed] %> Fail</span>
-              <span class="qa-badge qa-blocked"><%= qs[:blocked_count] %> Blocked</span>
-            </span>
+            <%= link_to project_pm_dashboard_failed_tests_path(@project, sprint_id: @selected_sprint.id), class: 'pm-metric-link' do %>
+              <span class="pm-metric-label"><%= l(:label_pm_test_results) %></span>
+              <span class="pm-metric-value">
+                <span class="qa-badge qa-pass"><%= qs[:passed] %> Pass</span>
+                <span class="qa-badge qa-fail"><%= qs[:failed] %> Fail</span>
+                <span class="qa-badge qa-blocked"><%= qs[:blocked_count] %> Blocked</span>
+              </span>
+            <% end %>
           </div>
 
           <div class="pm-metric <%= qs[:signoff_ok] ? 'pm-ok' : (qs[:signoff_status] == 'rejected' ? 'pm-fail' : 'pm-pending') %>">
@@ -117,5 +142,5 @@
 
       </div><%# /pm-metrics-grid %>
     </div><%# /pm-sprint-card %>
-  <% end %>
+<% end %>
 <% end %>
