@@ -120,6 +120,7 @@ en:
   label_pm_decision_signals: Decision Signals
   label_pm_release_rules: Release Rules
   label_pm_approval_workflow: Approval Workflow
+  label_pm_audit_trail: Approval History
   activerecord:
     attributes:
       pull_request:
