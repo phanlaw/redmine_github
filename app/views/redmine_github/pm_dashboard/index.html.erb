@@ -159,9 +159,8 @@
           <small class="pm-target">(must be 0)</small>
         </td>
         <td>
-          <% case qs[:signoff_status] %>
-          <% when 'approved' %><span style="color:#2a7d2a">✓ Approved</span>
-          <% when 'rejected' %><span style="color:#c0392b">✗ Rejected</span>
+          <% if qs[:signoff_status] == 'approved' %><span style="color:#2a7d2a">✓ Approved</span>
+          <% elsif qs[:signoff_status] == 'rejected' %><span style="color:#c0392b">✗ Rejected</span>
           <% else %>Pending<% end %>
         </td>
       </tr>
