@@ -3,7 +3,11 @@ class ProjectThreshold < ApplicationRecord
 
   validates :project_id, presence: true, uniqueness: true
   validates :completion_ok, :completion_warning, :bug_rate_ok, :bug_rate_warning,
-            :delay_rate_ok, :delay_rate_warning, presence: true
+            :delay_rate_ok, :delay_rate_warning, presence: true, numericality: { greater_than_or_equal_to: 0, less_than_or_equal_to: 100 }
+  validates :cycle_time_baseline_days, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+  validate :completion_ok_greater_than_warning
+  validate :bug_rate_ok_less_than_warning
+  validate :delay_rate_ok_less_than_warning
 
   def self.for_project(project)
     find_or_create_by(project_id: project.id)
@@ -53,6 +57,32 @@ class ProjectThreshold < ApplicationRecord
       :warning
     else
       :critical
+    end
+  end
+
+  private
+
+  def completion_ok_greater_than_warning
+    return if completion_ok.blank? || completion_warning.blank?
+
+    if completion_ok < completion_warning
+      errors.add(:completion_ok, "must be greater than or equal to completion warning")
+    end
+  end
+
+  def bug_rate_ok_less_than_warning
+    return if bug_rate_ok.blank? || bug_rate_warning.blank?
+
+    if bug_rate_ok > bug_rate_warning
+      errors.add(:bug_rate_ok, "must be less than or equal to bug rate warning")
+    end
+  end
+
+  def delay_rate_ok_less_than_warning
+    return if delay_rate_ok.blank? || delay_rate_warning.blank?
+
+    if delay_rate_ok > delay_rate_warning
+      errors.add(:delay_rate_ok, "must be less than or equal to delay rate warning")
     end
   end
 end

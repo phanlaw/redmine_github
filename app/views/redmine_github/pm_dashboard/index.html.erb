@@ -175,7 +175,7 @@
 
         <div class="pm-health-overall pm-health-<%= hs[:overall_status] %>">
           <strong>Overall Sprint Health: <%= hs[:overall_status].to_s.upcase %></strong>
-          <p>Based on configurable thresholds. <%= link_to 'Configure', '#' %></p>
+          <p>Based on configurable thresholds. <%= link_to 'Configure', edit_project_threshold_path(@project) %></p>
         </div>
       </div>
 

@@ -1,0 +1,108 @@
+<% content_for :header_tags do %>
+  <%= stylesheet_link_tag 'redmine_github', plugin: :redmine_github %>
+<% end %>
+
+<h2>
+  <%= link_to @project.name, project_path(@project) %>
+  › <%= l(:label_pm_thresholds) %>
+</h2>
+
+<div class="pm-thresholds-form">
+  <%= form_with model: @threshold, local: true, url: project_threshold_path(@project), method: :patch do |f| %>
+    <% if @threshold.errors.any? %>
+      <div id="error_explanation">
+        <h3><%= pluralize(@threshold.errors.count, "error") %> prohibited:</h3>
+        <ul>
+          <% @threshold.errors.full_messages.each do |msg| %>
+            <li><%= msg %></li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="pm-threshold-section">
+      <h3><%= l(:label_pm_completion_rate) %></h3>
+      <p class="pm-threshold-help">
+        OK: ≥ Completion OK %, Warning: ≥ Completion Warning %, Critical: Below Warning %
+      </p>
+
+      <div class="pm-threshold-group">
+        <%= f.label :completion_ok, "Completion OK (%)" %>
+        <%= f.number_field :completion_ok, min: 0, max: 100, step: 0.01 %>
+        <span class="pm-threshold-unit">%</span>
+      </div>
+
+      <div class="pm-threshold-group">
+        <%= f.label :completion_warning, "Completion Warning (%)" %>
+        <%= f.number_field :completion_warning, min: 0, max: 100, step: 0.01 %>
+        <span class="pm-threshold-unit">%</span>
+      </div>
+    </div>
+
+    <div class="pm-threshold-section">
+      <h3><%= l(:label_pm_bug_rate) %></h3>
+      <p class="pm-threshold-help">
+        OK: ≤ Bug OK %, Warning: ≤ Bug Warning %, Critical: Above Warning %
+      </p>
+
+      <div class="pm-threshold-group">
+        <%= f.label :bug_rate_ok, "Bug Rate OK (%)" %>
+        <%= f.number_field :bug_rate_ok, min: 0, max: 100, step: 0.01 %>
+        <span class="pm-threshold-unit">%</span>
+      </div>
+
+      <div class="pm-threshold-group">
+        <%= f.label :bug_rate_warning, "Bug Rate Warning (%)" %>
+        <%= f.number_field :bug_rate_warning, min: 0, max: 100, step: 0.01 %>
+        <span class="pm-threshold-unit">%</span>
+      </div>
+    </div>
+
+    <div class="pm-threshold-section">
+      <h3><%= l(:label_pm_delay_rate) %></h3>
+      <p class="pm-threshold-help">
+        OK: ≤ Delay OK %, Warning: ≤ Delay Warning %, Critical: Above Warning %
+      </p>
+
+      <div class="pm-threshold-group">
+        <%= f.label :delay_rate_ok, "Delay Rate OK (%)" %>
+        <%= f.number_field :delay_rate_ok, min: 0, max: 100, step: 0.01 %>
+        <span class="pm-threshold-unit">%</span>
+      </div>
+
+      <div class="pm-threshold-group">
+        <%= f.label :delay_rate_warning, "Delay Rate Warning (%)" %>
+        <%= f.number_field :delay_rate_warning, min: 0, max: 100, step: 0.01 %>
+        <span class="pm-threshold-unit">%</span>
+      </div>
+    </div>
+
+    <div class="pm-threshold-section">
+      <h3><%= l(:label_pm_avg_cycle_time) %></h3>
+      <p class="pm-threshold-help">
+        Baseline days for cycle time evaluation. OK: ≤ baseline, Warning: ≤ baseline + 10%, Critical: > baseline + 10%
+      </p>
+
+      <div class="pm-threshold-group">
+        <%= f.label :cycle_time_baseline_days, "Cycle Time Baseline (days)" %>
+        <%= f.number_field :cycle_time_baseline_days, min: 0, step: 0.1 %>
+        <span class="pm-threshold-unit">days</span>
+      </div>
+    </div>
+
+    <div class="pm-threshold-actions">
+      <%= f.submit l(:button_save), class: 'btn btn-primary' %>
+      <%= link_to l(:button_cancel), project_pm_dashboard_path(@project), class: 'btn btn-default' %>
+    </div>
+  <% end %>
+</div>
+
+<div class="pm-threshold-info">
+  <h4><%= l(:label_pm_threshold_defaults) %></h4>
+  <ul>
+    <li><strong>Completion:</strong> OK ≥ 85%, Warning ≥ 70%</li>
+    <li><strong>Bug Rate:</strong> OK ≤ 3%, Warning ≤ 5%</li>
+    <li><strong>Delay Rate:</strong> OK ≤ 10%, Warning ≤ 20%</li>
+    <li><strong>Cycle Time:</strong> Baseline = team average (customizable per project)</li>
+  </ul>
+</div>

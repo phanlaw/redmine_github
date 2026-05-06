@@ -524,3 +524,102 @@ a.icon-pr:hover {
   opacity: 1;
   text-decoration: underline;
 }
+
+/* ── PM Thresholds Form ─────────────────────────────────────── */
+.pm-thresholds-form {
+  max-width: 600px;
+  margin: 2em 0;
+}
+
+.pm-threshold-section {
+  margin-bottom: 2em;
+  padding: 1.5em;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.pm-threshold-section h3 {
+  margin-top: 0;
+  margin-bottom: 0.5em;
+  color: #333;
+  font-size: 1.1em;
+}
+
+.pm-threshold-help {
+  margin: 0.5em 0 1em;
+  font-size: 0.9em;
+  color: #666;
+  background: #f3f4f6;
+  padding: 0.5em;
+  border-left: 3px solid #3b82f6;
+}
+
+.pm-threshold-group {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  margin-bottom: 1em;
+}
+
+.pm-threshold-group label {
+  min-width: 160px;
+  font-weight: 500;
+  color: #333;
+}
+
+.pm-threshold-group input[type="number"] {
+  flex: 0 1 100px;
+  padding: 0.5em;
+  border: 1px solid #d0d7de;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+
+.pm-threshold-group input[type="number"]:focus {
+  outline: none;
+  border-color: #0969da;
+  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+}
+
+.pm-threshold-unit {
+  flex: 0 0 auto;
+  color: #666;
+  font-size: 0.9em;
+}
+
+.pm-threshold-actions {
+  margin-top: 2em;
+  padding-top: 1em;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  gap: 1em;
+}
+
+.pm-threshold-actions .btn {
+  padding: 0.6em 1.2em;
+  font-size: 0.9em;
+}
+
+.pm-threshold-info {
+  margin-top: 2em;
+  padding: 1em;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 6px;
+}
+
+.pm-threshold-info h4 {
+  margin-top: 0;
+  color: #92400e;
+}
+
+.pm-threshold-info ul {
+  margin: 0;
+  padding-left: 1.5em;
+}
+
+.pm-threshold-info li {
+  color: #78350f;
+  margin-bottom: 0.5em;
+}

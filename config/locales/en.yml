@@ -114,6 +114,8 @@ en:
   label_pm_health_summary: Sprint Health Summary
   label_pm_project: Project
   label_pm_sprint: Sprint
+  label_pm_thresholds: Metric Thresholds
+  label_pm_threshold_defaults: Default Values
   activerecord:
     attributes:
       pull_request:
