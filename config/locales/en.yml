@@ -111,6 +111,9 @@ en:
   label_pm_need_execution_rate: Test execution rate < 95%
   label_pm_need_no_blockers: Open blocker/critical issues remain
   label_pm_need_qa_signoff: QA sign-off not approved
+  label_pm_health_summary: Sprint Health Summary
+  label_pm_project: Project
+  label_pm_sprint: Sprint
   activerecord:
     attributes:
       pull_request:

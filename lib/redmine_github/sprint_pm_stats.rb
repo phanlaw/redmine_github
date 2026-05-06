@@ -48,6 +48,20 @@ module RedmineGithub
       }
     end
 
+    def health_summary
+      project = @version.project
+      threshold = ProjectThreshold.for_project(project)
+      stats = call
+
+      {
+        completion_rate:     { value: stats[:completion_rate], status: threshold.evaluate_completion(stats[:completion_rate]) },
+        bug_rate:            { value: stats[:bug_rate], status: threshold.evaluate_bug_rate(stats[:bug_rate]) },
+        delay_rate:          { value: stats[:delay_rate], status: threshold.evaluate_delay_rate(stats[:delay_rate]) },
+        cycle_time:          { value: stats[:avg_cycle_days], status: threshold.evaluate_cycle_time(stats[:avg_cycle_days] || 0) },
+        overall_status:      compute_overall_status(threshold, stats)
+      }
+    end
+
     private
 
     def empty_stats
@@ -57,6 +71,20 @@ module RedmineGithub
         completion_ok: false, bug_rate_ok: true, delay_rate_ok: true,
         blockers: []
       }
+    end
+
+    def compute_overall_status(threshold, stats)
+      statuses = [
+        threshold.evaluate_completion(stats[:completion_rate]),
+        threshold.evaluate_bug_rate(stats[:bug_rate]),
+        threshold.evaluate_delay_rate(stats[:delay_rate]),
+        threshold.evaluate_cycle_time(stats[:avg_cycle_days] || 0)
+      ]
+
+      return :critical if statuses.include?(:critical)
+      return :warning if statuses.include?(:warning)
+
+      :ok
     end
   end
 end
