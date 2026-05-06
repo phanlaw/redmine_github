@@ -905,3 +905,133 @@ a.icon-pr:hover {
   padding: 0.75em;
   border-radius: 4px;
 }
+
+/* ── PM Audit Trail ──────────────────────────────────────────── */
+.pm-audit-trail {
+  padding: 1.5em;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-bottom: 1.5em;
+}
+
+.pm-audit-trail h4 {
+  margin-top: 0;
+  margin-bottom: 1.5em;
+  color: #333;
+  font-size: 1em;
+  font-weight: 600;
+}
+
+.pm-timeline {
+  position: relative;
+  padding: 0;
+}
+
+.pm-timeline::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, #22c55e 0%, #f59e0b 50%, #ef4444 100%);
+}
+
+.pm-timeline-event {
+  display: flex;
+  margin-bottom: 1.5em;
+  position: relative;
+  padding-left: 56px;
+  min-height: 3em;
+}
+
+.pm-timeline-event:last-child {
+  margin-bottom: 0;
+}
+
+.pm-event-marker {
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pm-event-marker.success {
+  background: #22c55e;
+  border-color: #f0fdf4;
+}
+
+.pm-event-marker.failure {
+  background: #ef4444;
+  border-color: #fef2f2;
+}
+
+.pm-event-content {
+  flex: 1;
+  padding: 0.75em 1em;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+}
+
+.pm-event-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: 0.9em;
+  margin-bottom: 0.5em;
+}
+
+.pm-event-user {
+  color: #333;
+}
+
+.pm-event-role {
+  color: #666;
+  font-size: 0.85em;
+}
+
+.pm-event-action {
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-size: 0.8em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.pm-event-action.approve {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.pm-event-action.reject {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.pm-event-time {
+  color: #999;
+  font-size: 0.85em;
+  margin-left: auto;
+}
+
+.pm-event-notes {
+  padding: 0.5em 0;
+  color: #666;
+  font-size: 0.9em;
+  font-style: italic;
+}
+
+.pm-event-timestamp {
+  color: #999;
+  font-size: 0.8em;
+  margin-top: 0.25em;
+}

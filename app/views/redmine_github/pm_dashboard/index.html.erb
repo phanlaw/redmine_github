@@ -304,6 +304,33 @@
         </div>
       </div>
 
+      <%# ── Audit Trail ── %>
+      <% timeline = @audit_trail[:timeline] %>
+      <% if timeline.any? %>
+        <div class="pm-audit-trail">
+          <h4><%= l(:label_pm_audit_trail) %></h4>
+          <div class="pm-timeline">
+            <% timeline.each do |event| %>
+              <div class="pm-timeline-event pm-event-<%= event[:status] %>">
+                <div class="pm-event-marker <%= event[:status] %>"></div>
+                <div class="pm-event-content">
+                  <div class="pm-event-header">
+                    <span class="pm-event-user"><strong><%= event[:user] %></strong></span>
+                    <span class="pm-event-role">(<%= event[:role] %>)</span>
+                    <span class="pm-event-action <%= event[:action].downcase %>"><%= event[:action] %></span>
+                    <span class="pm-event-time"><%= time_ago_in_words(event[:timestamp]) %> ago</span>
+                  </div>
+                  <% if event[:notes].present? %>
+                    <div class="pm-event-notes"><%= event[:notes] %></div>
+                  <% end %>
+                  <div class="pm-event-timestamp"><%= time_tag event[:timestamp], format: :short %></div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+
       <%# ── Blocker Visibility ── %>
       <% blockers = @sprint_stats[:blockers] || [] %>
       <% if blockers.any? %>
