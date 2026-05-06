@@ -44,7 +44,7 @@ module RedmineGithub
 
     def failed_tests
       authorize_sprint
-      results = IssueTestResult.where(issue_id: @selected_sprint.fixed_issues.pluck(:id), status: 'failed')
+      results = IssueTestResult.where(issue_id: @selected_sprint.fixed_issues.pluck(:id), result: 'failed')
       issues = Issue.where(id: results.pluck(:issue_id))
       render_drill_down(issues, "Failed Tests (#{issues.count})")
     end
