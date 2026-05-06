@@ -4,17 +4,48 @@ module RedmineGithub
   class PmDashboardController < ApplicationController
     before_action :find_project
     before_action :authorize
+    before_action :load_selected_sprint
 
     def index
+      @projects = Project.visible.sorted
       @versions = @project.versions.order(created_on: :desc)
 
-      @sprint_stats = @versions.each_with_object({}) do |v, h|
-        h[v.id] = RedmineGithub::SprintPmStats.new(v).call
+      if @selected_sprint
+        @sprint_stats = RedmineGithub::SprintPmStats.new(@selected_sprint).call
+        @qa_stats = RedmineGithub::QaGateStats.new(@selected_sprint).call
+        @metric_snapshot = MetricSnapshot.for_version(@selected_sprint).latest.first
+        @integrity_warnings = DataIntegrityWarning.for_version(@selected_sprint).recent
+        @sync_status = SystemSyncStatus.recent
       end
+    end
 
-      @qa_stats = @versions.each_with_object({}) do |v, h|
-        h[v.id] = RedmineGithub::QaGateStats.new(v).call
+    def closed_issues
+      authorize_sprint
+      issues = @selected_sprint.fixed_issues.where(statuses: { is_closed: true }).includes(:status, :tracker)
+      render_drill_down(issues, "Closed Issues (#{issues.count})")
+    end
+
+    def blockers
+      authorize_sprint
+      blocker_statuses = IssueStatus.where(is_closed: false)
+      blocker_priorities = IssuePriority.where(name: %w[High Immediate])
+      issues = @selected_sprint.fixed_issues.where(status_id: blocker_statuses.pluck(:id), priority_id: blocker_priorities.pluck(:id))
+      render_drill_down(issues, "Blockers (#{issues.count})")
+    end
+
+    def delayed_tasks
+      authorize_sprint
+      issues = @selected_sprint.fixed_issues.includes(:status).select do |i|
+        i.status.is_closed? && i.due_date && i.closed_on && i.closed_on.to_date > i.due_date
       end
+      render_drill_down(issues, "Delayed Tasks (#{issues.count})")
+    end
+
+    def failed_tests
+      authorize_sprint
+      results = IssueTestResult.where(issue_id: @selected_sprint.fixed_issues.pluck(:id), status: 'failed')
+      issues = Issue.where(id: results.pluck(:issue_id))
+      render_drill_down(issues, "Failed Tests (#{issues.count})")
     end
 
     private
@@ -23,6 +54,26 @@ module RedmineGithub
       @project = Project.find(params[:project_id])
     rescue ActiveRecord::RecordNotFound
       render_404
+    end
+
+    def load_selected_sprint
+      sprint_id = params[:sprint_id] || session["pm_dashboard_sprint_#{@project.id}"]
+      @selected_sprint = @project.versions.find_by(id: sprint_id) if sprint_id.present?
+      @selected_sprint ||= @project.versions.where('effective_date >= ?', Date.today).first
+      session["pm_dashboard_sprint_#{@project.id}"] = @selected_sprint.id if @selected_sprint
+    end
+
+    def authorize_sprint
+      render_403 unless @selected_sprint && @project.versions.exists?(@selected_sprint.id)
+    end
+
+    def render_drill_down(issues, title)
+      @drill_down_title = title
+      @drill_down_issues = issues.sort_by { |i| i.created_on || i.updated_on }.reverse
+      respond_to do |format|
+        format.html { render 'drill_down' }
+        format.json { render json: @drill_down_issues }
+      end
     end
   end
 end

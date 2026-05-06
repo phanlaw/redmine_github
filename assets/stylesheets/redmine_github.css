@@ -297,3 +297,67 @@ a.icon-pr:hover {
   color: #82071e;
 }
 .pm-release-nogo ul { margin: 0.4em 0 0 1.2em; font-size: 0.88em; }
+
+/* ── PM Selection bar ─────────────────────────────────────── */
+.pm-selection-bar {
+  background: #f6f8fa;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  padding: 1em;
+  margin-bottom: 1.5em;
+  display: flex;
+  gap: 2em;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.pm-selection-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+
+.pm-selection-group label {
+  font-size: 0.85em;
+  font-weight: 600;
+  color: #57606a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.pm-selection-group select {
+  padding: 6px 12px;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  font-size: 0.9em;
+  background: #fff;
+  cursor: pointer;
+  min-width: 180px;
+}
+
+.pm-selection-group select:focus {
+  outline: none;
+  border-color: #0969da;
+  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+}
+
+/* ── PM Metric Links ─────────────────────────────────────── */
+.pm-metric-link {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pm-metric-link:hover {
+  opacity: 0.85;
+}
+
+.pm-metric-link:hover .pm-metric-label,
+.pm-metric-link:hover .pm-metric-value {
+  text-decoration: underline;
+}

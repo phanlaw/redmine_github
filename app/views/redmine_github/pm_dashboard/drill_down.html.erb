@@ -1,0 +1,81 @@
+<div id="drill-down-panel" class="pm-drill-down">
+  <div class="drill-down-header">
+    <h3><%= @drill_down_title %></h3>
+    <%= link_to "Back to Dashboard", project_pm_dashboard_path(@project), class: "btn-secondary" %>
+  </div>
+
+  <% if @drill_down_issues.empty? %>
+    <div class="notice">
+      No items found.
+    </div>
+  <% else %>
+    <table class="drill-down-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Subject</th>
+          <th>Status</th>
+          <th>Assignee</th>
+          <th>Created</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @drill_down_issues.each do |issue| %>
+          <tr>
+            <td><%= link_to "##{issue.id}", issue_path(issue) %></td>
+            <td><%= link_to issue.subject, issue_path(issue) %></td>
+            <td><span class="status-badge"><%= issue.status.name %></span></td>
+            <td><%= issue.assigned_to&.name || "Unassigned" %></td>
+            <td><%= time_ago_in_words(issue.created_on) %> ago</td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>
+
+<style>
+.pm-drill-down {
+  margin: 20px 0;
+  padding: 15px;
+  background: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.drill-down-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.drill-down-header h3 {
+  margin: 0;
+}
+
+.drill-down-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.drill-down-table th,
+.drill-down-table td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+.drill-down-table th {
+  background: #f0f0f0;
+  font-weight: bold;
+}
+
+.status-badge {
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  background: #e3f2fd;
+  color: #1976d2;
+}
+</style>

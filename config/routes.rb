@@ -16,6 +16,10 @@ end
 scope '/projects/:project_id', module: 'redmine_github' do
   get 'github_metrics', as: 'project_github_metrics', to: 'github_metrics#index'
   get 'pm_dashboard',   as: 'project_pm_dashboard',   to: 'pm_dashboard#index'
+  get 'pm_dashboard/closed_issues', as: 'project_pm_dashboard_closed_issues', to: 'pm_dashboard#closed_issues'
+  get 'pm_dashboard/blockers', as: 'project_pm_dashboard_blockers', to: 'pm_dashboard#blockers'
+  get 'pm_dashboard/delayed_tasks', as: 'project_pm_dashboard_delayed_tasks', to: 'pm_dashboard#delayed_tasks'
+  get 'pm_dashboard/failed_tests', as: 'project_pm_dashboard_failed_tests', to: 'pm_dashboard#failed_tests'
 
   scope '/versions/:version_id' do
     post 'qa_signoffs',         as: 'version_qa_signoffs',        to: 'qa_signoffs#create'
