@@ -140,42 +140,75 @@
           <% end %>
         </div>
 
-        <%# ── Sprint Health Summary ── %>
-        <div class="pm-metric-group">
-          <h4><%= l(:label_pm_health_summary) %></h4>
-          <% hs = @health_summary %>
+      </div><%# /pm-metrics-grid %>
 
-          <div class="pm-metric pm-health-grid">
-            <div class="pm-health-item pm-health-<%= hs[:completion_rate][:status] %>">
-              <span class="pm-health-label">Completion</span>
-              <span class="pm-health-value"><%= hs[:completion_rate][:value] %>%</span>
-              <span class="pm-health-status"><%= hs[:completion_rate][:status].to_s.upcase %></span>
-            </div>
+      <%# ── Sprint Health Summary ── %>
+      <div class="pm-metric-group">
+        <h4><%= l(:label_pm_health_summary) %></h4>
+        <% hs = @health_summary %>
 
-            <div class="pm-health-item pm-health-<%= hs[:bug_rate][:status] %>">
-              <span class="pm-health-label">Bug Rate</span>
-              <span class="pm-health-value"><%= hs[:bug_rate][:value] %>%</span>
-              <span class="pm-health-status"><%= hs[:bug_rate][:status].to_s.upcase %></span>
-            </div>
-
-            <div class="pm-health-item pm-health-<%= hs[:delay_rate][:status] %>">
-              <span class="pm-health-label">Delay Rate</span>
-              <span class="pm-health-value"><%= hs[:delay_rate][:value] %>%</span>
-              <span class="pm-health-status"><%= hs[:delay_rate][:status].to_s.upcase %></span>
-            </div>
-
-            <div class="pm-health-item pm-health-<%= hs[:cycle_time][:status] %>">
-              <span class="pm-health-label">Avg Cycle Time</span>
-              <span class="pm-health-value"><%= number_with_precision(hs[:cycle_time][:value] || 0, precision: 1) %> days</span>
-              <span class="pm-health-status"><%= hs[:cycle_time][:status].to_s.upcase %></span>
-            </div>
+        <div class="pm-metric pm-health-grid">
+          <div class="pm-health-item pm-health-<%= hs[:completion_rate][:status] %>">
+            <span class="pm-health-label">Completion</span>
+            <span class="pm-health-value"><%= hs[:completion_rate][:value] %>%</span>
+            <span class="pm-health-status"><%= hs[:completion_rate][:status].to_s.upcase %></span>
           </div>
 
-          <div class="pm-health-overall pm-health-<%= hs[:overall_status] %>">
-            <strong>Overall Sprint Health: <%= hs[:overall_status].to_s.upcase %></strong>
-            <p>Based on configurable thresholds. <%= link_to 'Configure', '#' %></p>
+          <div class="pm-health-item pm-health-<%= hs[:bug_rate][:status] %>">
+            <span class="pm-health-label">Bug Rate</span>
+            <span class="pm-health-value"><%= hs[:bug_rate][:value] %>%</span>
+            <span class="pm-health-status"><%= hs[:bug_rate][:status].to_s.upcase %></span>
+          </div>
+
+          <div class="pm-health-item pm-health-<%= hs[:delay_rate][:status] %>">
+            <span class="pm-health-label">Delay Rate</span>
+            <span class="pm-health-value"><%= hs[:delay_rate][:value] %>%</span>
+            <span class="pm-health-status"><%= hs[:delay_rate][:status].to_s.upcase %></span>
+          </div>
+
+          <div class="pm-health-item pm-health-<%= hs[:cycle_time][:status] %>">
+            <span class="pm-health-label">Avg Cycle Time</span>
+            <span class="pm-health-value"><%= number_with_precision(hs[:cycle_time][:value] || 0, precision: 1) %> days</span>
+            <span class="pm-health-status"><%= hs[:cycle_time][:status].to_s.upcase %></span>
           </div>
         </div>
 
-      </div><%# /pm-metrics-grid %>
+        <div class="pm-health-overall pm-health-<%= hs[:overall_status] %>">
+          <strong>Overall Sprint Health: <%= hs[:overall_status].to_s.upcase %></strong>
+          <p>Based on configurable thresholds. <%= link_to 'Configure', '#' %></p>
+        </div>
+      </div>
+
+      <%# ── Blocker Visibility ── %>
+      <% blockers = @sprint_stats[:blockers] || [] %>
+      <% if blockers.any? %>
+        <div class="pm-blocker-visibility">
+          <h4><%= l(:label_pm_blockers) %></h4>
+          <table class="pm-blocker-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Subject</th>
+                <th>Assignee</th>
+                <th>Blocked Since</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% blockers.sort_by { |b| b[:created_on] || Time.current }.each do |blocker| %>
+                <tr>
+                  <td><%= link_to "##{blocker[:id]}", issue_path(blocker[:id]) %></td>
+                  <td><%= link_to blocker[:subject], issue_path(blocker[:id]) %></td>
+                  <td><%= blocker[:assignee] %></td>
+                  <td><%= time_tag blocker[:created_on], format: :short if blocker[:created_on] %></td>
+                  <td><span class="pm-duration"><%= distance_of_time_in_words(blocker[:created_on] || Time.current, Time.current) %></span></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+
+    </div><%# /pm-sprint-card %>
+<% end %>
 <% end %>

@@ -21,12 +21,16 @@ module RedmineGithub
       delayed  = closed.select { |i| i.due_date && i.closed_on && i.closed_on.to_date > i.due_date }
       cycles   = closed.select { |i| i.start_date && i.closed_on }
 
+      # Blockers: High/Immediate priority + open status
+      blocker_priorities = IssuePriority.where(name: %w[High Immediate]).pluck(:id)
+      blockers = issues.select { |i| !i.status.is_closed? && blocker_priorities.include?(i.priority_id) }
+
       completion_rate = (closed.size.to_f / total * 100).round(1)
       bug_rate        = (bugs.size.to_f / total * 100).round(1)
       delay_rate      = closed.empty? ? 0.0 : (delayed.size.to_f / closed.size * 100).round(1)
       avg_cycle_days  = cycles.empty? ? nil : (cycles.sum { |i| (i.closed_on.to_date - i.start_date).to_i } / cycles.size.to_f).round(1)
 
-      blockers = issues.select { |i| i.priority.present? && ['High', 'Immediate'].include?(i.priority.name) && !i.status.is_closed? }
+      blockers_data = blockers.map { |b| { id: b.id, subject: b.subject, assignee: b.assigned_to&.name || 'Unassigned', created_on: b.created_on } }
 
       {
         total:               total,
@@ -40,12 +44,7 @@ module RedmineGithub
         completion_ok:       completion_rate >= COMPLETION_THRESHOLD,
         bug_rate_ok:         bug_rate <= BUG_RATE_THRESHOLD,
         delay_rate_ok:       delay_rate <= DELAY_RATE_THRESHOLD,
-        blockers:            blockers.map { |i| {
-          id: i.id,
-          subject: i.subject,
-          assignee: i.assigned_to&.name,
-          created_on: i.created_on
-        } }
+        blockers:            blockers_data
       }
     end
 

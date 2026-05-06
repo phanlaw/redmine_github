@@ -298,6 +298,60 @@ a.icon-pr:hover {
 }
 .pm-release-nogo ul { margin: 0.4em 0 0 1.2em; font-size: 0.88em; }
 
+/* ── PM Blocker Visibility ─────────────────────────────────────── */
+.pm-blocker-visibility {
+  margin-top: 1.5em;
+  padding: 1em 1.25em;
+  background: #fff8c5;
+  border: 1px solid #bf8700;
+  border-radius: 6px;
+}
+
+.pm-blocker-visibility h4 {
+  margin: 0 0 1em;
+  font-size: 0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #856404;
+}
+
+.pm-blocker-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9em;
+}
+
+.pm-blocker-table th,
+.pm-blocker-table td {
+  padding: 8px 10px;
+  text-align: left;
+  border-bottom: 1px solid #ffeeba;
+}
+
+.pm-blocker-table th {
+  background: #fff3cd;
+  font-weight: 600;
+  color: #856404;
+}
+
+.pm-blocker-table tr:last-child td {
+  border-bottom: none;
+}
+
+.pm-blocker-table a {
+  color: #0969da;
+  text-decoration: none;
+}
+
+.pm-blocker-table a:hover {
+  text-decoration: underline;
+}
+
+.pm-duration {
+  color: #856404;
+  font-weight: 600;
+}
+
 /* ── PM Selection bar ─────────────────────────────────────── */
 .pm-selection-bar {
   background: #f6f8fa;
