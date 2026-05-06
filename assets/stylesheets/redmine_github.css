@@ -1035,3 +1035,104 @@ a.icon-pr:hover {
   font-size: 0.8em;
   margin-top: 0.25em;
 }
+
+/* ── PM Trend Analysis ───────────────────────────────────────── */
+.pm-trend-analysis {
+  padding: 1.5em;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  margin-bottom: 1.5em;
+}
+
+.pm-trend-analysis h4 {
+  margin-top: 0;
+  margin-bottom: 1.5em;
+}
+
+.pm-trend-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1em;
+  margin-bottom: 2em;
+  padding: 1em;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+}
+
+.pm-trend-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  text-align: center;
+}
+
+.pm-trend-label {
+  font-size: 0.85em;
+  color: #666;
+  font-weight: 500;
+}
+
+.pm-trend-value {
+  font-size: 1.5em;
+  font-weight: 700;
+  color: #333;
+}
+
+.pm-trend-direction {
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.pm-trend-direction.pm-trend-up {
+  color: #22c55e;
+}
+
+.pm-trend-direction.pm-trend-down {
+  color: #ef4444;
+}
+
+.pm-trend-direction.pm-trend-stable {
+  color: #9ca3af;
+}
+
+.pm-trend-table {
+  overflow-x: auto;
+}
+
+.pm-trend-table table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+.pm-trend-table thead {
+  background: #f3f4f6;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.pm-trend-table th {
+  padding: 0.75em;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.9em;
+}
+
+.pm-trend-table td {
+  padding: 0.75em;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.9em;
+}
+
+.pm-trend-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.pm-trend-table .pm-metric-value {
+  font-weight: 600;
+  color: #333;
+}

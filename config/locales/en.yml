@@ -121,6 +121,7 @@ en:
   label_pm_release_rules: Release Rules
   label_pm_approval_workflow: Approval Workflow
   label_pm_audit_trail: Approval History
+  label_pm_trend_analysis: Sprint Performance Trends
   activerecord:
     attributes:
       pull_request:

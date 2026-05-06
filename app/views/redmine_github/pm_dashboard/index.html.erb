@@ -331,6 +331,63 @@
         </div>
       <% end %>
 
+      <%# ── Trend Analysis ── %>
+      <% trends = @trend_analysis[:sprints] %>
+      <% if trends.any? %>
+        <div class="pm-trend-analysis">
+          <h4><%= l(:label_pm_trend_analysis) %></h4>
+          
+          <div class="pm-trend-summary">
+            <div class="pm-trend-metric">
+              <span class="pm-trend-label">Completion Rate</span>
+              <span class="pm-trend-value"><%= (@trend_analysis[:avg_completion] * 100).round %>%</span>
+              <span class="pm-trend-direction <%= "pm-trend-#{@trend_analysis.send(:trend_direction, :completion)}" %>">
+                <%= @trend_analysis.send(:trend_icon, @trend_analysis.send(:trend_direction, :completion)) %>
+              </span>
+            </div>
+            <div class="pm-trend-metric">
+              <span class="pm-trend-label">Avg Cycle Time</span>
+              <span class="pm-trend-value"><%= @trend_analysis[:avg_cycle_time].round(1) %> days</span>
+              <span class="pm-trend-direction <%= "pm-trend-#{@trend_analysis.send(:trend_direction, :cycle_time)}" %>">
+                <%= @trend_analysis.send(:trend_icon, @trend_analysis.send(:trend_direction, :cycle_time)) %>
+              </span>
+            </div>
+            <div class="pm-trend-metric">
+              <span class="pm-trend-label">Bug Rate</span>
+              <span class="pm-trend-value"><%= (@trend_analysis[:avg_bug_rate] * 100).round(1) %>%</span>
+              <span class="pm-trend-direction <%= "pm-trend-#{@trend_analysis.send(:trend_direction, :bug_rate)}" %>">
+                <%= @trend_analysis.send(:trend_icon, @trend_analysis.send(:trend_direction, :bug_rate)) %>
+              </span>
+            </div>
+          </div>
+
+          <div class="pm-trend-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Sprint</th>
+                  <th>Completed</th>
+                  <th>Completion %</th>
+                  <th>Cycle Time (days)</th>
+                  <th>Bug Rate %</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% trends.each do |sprint| %>
+                  <tr>
+                    <td><strong><%= link_to sprint[:name], project_pm_dashboard_path(@project, sprint_id: sprint[:id]) %></strong></td>
+                    <td><%= sprint[:closed_issues] %>/<%= sprint[:total_issues] %></td>
+                    <td><span class="pm-metric-value"><%= (sprint[:completion_rate] * 100).round %>%</span></td>
+                    <td><%= sprint[:cycle_time].round(1) %></td>
+                    <td><span class="pm-metric-value"><%= (sprint[:bug_rate] * 100).round(1) %>%</span></td>
+                  </tr>
+                <% end %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      <% end %>
+
       <%# ── Blocker Visibility ── %>
       <% blockers = @sprint_stats[:blockers] || [] %>
       <% if blockers.any? %>
