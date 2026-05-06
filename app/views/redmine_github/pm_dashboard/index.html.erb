@@ -141,6 +141,37 @@
         </div>
 
       </div><%# /pm-metrics-grid %>
+
+      <%# ── Blocker Visibility ── %>
+      <% blockers = @sprint_stats[:blockers] || [] %>
+      <% if blockers.any? %>
+        <div class="pm-blocker-visibility">
+          <h4><%= l(:label_pm_blockers) %></h4>
+          <table class="pm-blocker-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Subject</th>
+                <th>Assignee</th>
+                <th>Blocked Since</th>
+                <th>Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% blockers.sort_by { |b| b[:created_on] || Time.current }.each do |blocker| %>
+                <tr>
+                  <td><%= link_to "##{blocker[:id]}", issue_path(blocker[:id]) %></td>
+                  <td><%= link_to blocker[:subject], issue_path(blocker[:id]) %></td>
+                  <td><%= blocker[:assignee] %></td>
+                  <td><%= time_tag blocker[:created_on], format: :short if blocker[:created_on] %></td>
+                  <td><span class="pm-duration"><%= distance_of_time_in_words(blocker[:created_on] || Time.current, Time.current) %></span></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+
     </div><%# /pm-sprint-card %>
 <% end %>
 <% end %>
