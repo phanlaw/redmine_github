@@ -122,6 +122,7 @@ en:
   label_pm_approval_workflow: Approval Workflow
   label_pm_audit_trail: Approval History
   label_pm_trend_analysis: Sprint Performance Trends
+  label_pm_dashboard_analytics: Dashboard Usage Analytics
   activerecord:
     attributes:
       pull_request:

@@ -20,6 +20,7 @@ scope '/projects/:project_id', module: 'redmine_github' do
   get 'pm_dashboard/blockers', as: 'project_pm_dashboard_blockers', to: 'pm_dashboard#blockers'
   get 'pm_dashboard/delayed_tasks', as: 'project_pm_dashboard_delayed_tasks', to: 'pm_dashboard#delayed_tasks'
   get 'pm_dashboard/failed_tests', as: 'project_pm_dashboard_failed_tests', to: 'pm_dashboard#failed_tests'
+  get 'dashboard_analytics', as: 'project_dashboard_analytics', to: 'dashboard_analytics#index'
   get 'thresholds/edit', as: 'edit_project_threshold', to: 'project_thresholds#edit'
   patch 'thresholds', as: 'project_threshold', to: 'project_thresholds#update'
 
