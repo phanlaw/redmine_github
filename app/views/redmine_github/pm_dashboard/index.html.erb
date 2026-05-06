@@ -140,5 +140,42 @@
           <% end %>
         </div>
 
+        <%# ── Sprint Health Summary ── %>
+        <div class="pm-metric-group">
+          <h4><%= l(:label_pm_health_summary) %></h4>
+          <% hs = @health_summary %>
+
+          <div class="pm-metric pm-health-grid">
+            <div class="pm-health-item pm-health-<%= hs[:completion_rate][:status] %>">
+              <span class="pm-health-label">Completion</span>
+              <span class="pm-health-value"><%= hs[:completion_rate][:value] %>%</span>
+              <span class="pm-health-status"><%= hs[:completion_rate][:status].to_s.upcase %></span>
+            </div>
+
+            <div class="pm-health-item pm-health-<%= hs[:bug_rate][:status] %>">
+              <span class="pm-health-label">Bug Rate</span>
+              <span class="pm-health-value"><%= hs[:bug_rate][:value] %>%</span>
+              <span class="pm-health-status"><%= hs[:bug_rate][:status].to_s.upcase %></span>
+            </div>
+
+            <div class="pm-health-item pm-health-<%= hs[:delay_rate][:status] %>">
+              <span class="pm-health-label">Delay Rate</span>
+              <span class="pm-health-value"><%= hs[:delay_rate][:value] %>%</span>
+              <span class="pm-health-status"><%= hs[:delay_rate][:status].to_s.upcase %></span>
+            </div>
+
+            <div class="pm-health-item pm-health-<%= hs[:cycle_time][:status] %>">
+              <span class="pm-health-label">Avg Cycle Time</span>
+              <span class="pm-health-value"><%= number_with_precision(hs[:cycle_time][:value] || 0, precision: 1) %> days</span>
+              <span class="pm-health-status"><%= hs[:cycle_time][:status].to_s.upcase %></span>
+            </div>
+          </div>
+
+          <div class="pm-health-overall pm-health-<%= hs[:overall_status] %>">
+            <strong>Overall Sprint Health: <%= hs[:overall_status].to_s.upcase %></strong>
+            <p>Based on configurable thresholds. <%= link_to 'Configure', '#' %></p>
+          </div>
+        </div>
+
       </div><%# /pm-metrics-grid %>
 <% end %>

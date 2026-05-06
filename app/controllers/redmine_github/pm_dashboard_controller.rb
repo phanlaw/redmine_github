@@ -16,6 +16,7 @@ module RedmineGithub
         @metric_snapshot = MetricSnapshot.for_version(@selected_sprint).latest.first
         @integrity_warnings = DataIntegrityWarning.for_version(@selected_sprint).recent
         @sync_status = SystemSyncStatus.recent
+        @health_summary = RedmineGithub::SprintPmStats.new(@selected_sprint).health_summary
       end
     end
 
