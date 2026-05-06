@@ -17,6 +17,12 @@ module RedmineGithub
         @integrity_warnings = DataIntegrityWarning.for_version(@selected_sprint).recent
         @sync_status = SystemSyncStatus.recent
         @health_summary = RedmineGithub::SprintPmStats.new(@selected_sprint).health_summary
+        @release_gate = RedmineGithub::ReleaseReadinessGate.new(
+          @selected_sprint,
+          health_summary: @health_summary,
+          qa_stats: @qa_stats,
+          sprint_stats: @sprint_stats
+        ).call
       end
     end
 
