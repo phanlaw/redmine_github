@@ -25,6 +25,7 @@ module RedmineGithub
         ).call
         @approval_workflow = RedmineGithub::ApprovalWorkflow.new(@selected_sprint).call
         @audit_trail = RedmineGithub::AuditTrailService.new(@selected_sprint).call
+        @trend_analysis = RedmineGithub::TrendAnalysisService.new(@project, 5).call
       end
     end
 
