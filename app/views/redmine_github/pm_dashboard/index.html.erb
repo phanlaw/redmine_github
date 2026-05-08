@@ -32,8 +32,10 @@
   <% workflow = @approval_workflow %>
 
   <%# Determine approval state %>
-  <% qa_pending = workflow[:qa_approval].pending? %>
-  <% pm_pending = workflow[:pm_approval].pending? && workflow[:qa_approval].approved? %>
+  <% qa_pending  = workflow[:qa_approval].pending? %>
+  <% pm_pending  = workflow[:pm_approval].pending? && workflow[:qa_approval].approved? %>
+  <% qa_rejected = workflow[:qa_approval].rejected? %>
+  <% pm_rejected = workflow[:pm_approval].rejected? %>
 
   <%# Collect what's blocking a release %>
   <%
@@ -56,10 +58,10 @@
       <span class="pm-decision-verdict">⏳ AWAITING APPROVAL</span>
       <span class="pm-decision-meta"><%= @selected_sprint.name %> &nbsp;·&nbsp; <%= qa_pending ? 'Waiting for QA sign-off' : 'Waiting for PM approval' %></span>
     </div>
-  <% elsif rg[:risky] %>
+  <% elsif rg[:risky] || qa_rejected || pm_rejected %>
     <div class="pm-decision pm-risky">
       <span class="pm-decision-verdict">⚠ RISKY — review before releasing</span>
-      <span class="pm-decision-meta"><%= @selected_sprint.name %> &nbsp;·&nbsp; <%= blocking.join(' · ') %></span>
+      <span class="pm-decision-meta"><%= @selected_sprint.name %> &nbsp;·&nbsp; <%= qa_rejected ? 'QA approval rejected' : (pm_rejected ? 'PM approval rejected' : blocking.join(' · ')) %></span>
     </div>
   <% else %>
     <div class="pm-decision pm-nogo">
@@ -181,7 +183,7 @@
             <td><%= link_to "##{b[:id]}", issue_path(b[:id]) %></td>
             <td><%= link_to b[:subject], issue_path(b[:id]) %></td>
             <td><%= b[:assignee] || '—' %></td>
-            <td><%= time_tag b[:created_on], format: :short if b[:created_on] %></td>
+            <td><%= format_time(b[:created_on]) if b[:created_on] %></td>
             <td><span class="pm-duration"><%= distance_of_time_in_words(b[:created_on] || Time.current, Time.current) %></span></td>
           </tr>
         <% end %>
@@ -221,7 +223,7 @@
           <b><%= e[:user] %></b> (<%= e[:role] %>) <%= e[:action] %>d
           <% if e[:notes].present? %>&nbsp;&mdash;&nbsp;<em>"<%= e[:notes] %>"</em><% end %>
           &nbsp;<span class="pm-duration"><%= time_ago_in_words(e[:timestamp]) %> ago</span>
-          <small>(<%= time_tag e[:timestamp], format: :short %>)</small>
+          <small>(<%= format_time(e[:timestamp]) %>)</small>
         </li>
       <% end %>
     </ul>

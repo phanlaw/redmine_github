@@ -43,7 +43,7 @@ module RedmineGithub
     end
 
     def version_path
-      project_version_path(@project, @version)
+      project_versions_path(@project)
     end
   end
 end

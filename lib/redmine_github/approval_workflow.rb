@@ -31,7 +31,7 @@ module RedmineGithub
     end
 
     def qa_can_approve?(user)
-      user.has_role?(:qa_tester) || user.admin?
+      user.admin? || user.groups.map(&:name).any? { |n| n.casecmp?('QA') }
     end
 
     def pm_can_approve?(user)
