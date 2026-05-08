@@ -240,14 +240,8 @@ a.icon-pr:hover {
 .pm-meta { color: #57606a; font-size: 0.9em; }
 
 /* ── PM Definition of Done checklist ─────────────────────── */
-.pm-dod-table td { vertical-align: top; }
-.pm-dod-table .pm-dod-state { white-space: nowrap; }
-
-.pm-dod-pass  td:first-child { border-left: 3px solid #2da44e; }
-.pm-dod-fail  td:first-child { border-left: 3px solid #cf222e; }
-.pm-dod-manual td:first-child,
-.pm-dod-unknown td:first-child { border-left: 3px solid #bf8700; }
-
+.pm-dod-list { margin: 0 0 1em 0; padding: 0; list-style: none; }
+.pm-dod-list > li { margin-bottom: 0.4em; }
 .pm-dod-items { margin: 0.3em 0 0 1em; padding: 0; font-size: 0.87em; }
 .pm-dod-items li { margin-bottom: 0.2em; }
 

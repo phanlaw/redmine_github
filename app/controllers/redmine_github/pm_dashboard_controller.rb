@@ -22,7 +22,7 @@ module RedmineGithub
           total:  all_prs.count,
           open:   all_prs.where(merged_at: nil).count,
           merged: all_prs.where.not(merged_at: nil).count,
-          open_prs: all_prs.where(merged_at: nil).select(:title, :url).to_a
+          open_prs: all_prs.where(merged_at: nil).select(:title, :url, :opened_at, :created_at).to_a
         }
         @metric_snapshot = MetricSnapshot.for_version(@selected_sprint).latest.first
         @integrity_warnings = DataIntegrityWarning.for_version(@selected_sprint).recent
@@ -37,6 +37,23 @@ module RedmineGithub
         @approval_workflow = RedmineGithub::ApprovalWorkflow.new(@selected_sprint).call
         @audit_trail = RedmineGithub::AuditTrailService.new(@selected_sprint).call
         @trend_analysis = RedmineGithub::TrendAnalysisService.new(@project, 5).call
+
+        needs_attention = []
+        @pr_review_stats[:open_prs].each do |pr|
+          age = pr.opened_at || pr.created_at
+          age_days = age ? ((Time.current - age) / 1.day).to_i : nil
+          needs_attention << { type: 'PR', item: pr.title.presence || pr.url, age_days: age_days, url: pr.url }
+        end
+        unless @qa_stats[:signoff_ok]
+          needs_attention << { type: 'QA', item: 'QA sign-off pending', age_days: nil }
+        end
+        (@sprint_stats[:stale_blockers] + @sprint_stats[:stale_issues]).each do |b|
+          age_days = b[:updated_on] ? ((Time.current - b[:updated_on]) / 1.day).to_i : nil
+          needs_attention << { type: 'Issue', item: "##{b[:id]} #{b[:subject]}", age_days: age_days, issue_id: b[:id] }
+        end
+        @needs_attention = needs_attention
+          .uniq { |a| [a[:type], a[:url] || a[:issue_id].to_s] }
+          .sort_by { |a| -(a[:age_days] || -1) }
       end
     end
 
