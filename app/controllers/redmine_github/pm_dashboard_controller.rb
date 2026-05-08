@@ -15,6 +15,15 @@ module RedmineGithub
         
         @sprint_stats = RedmineGithub::SprintPmStats.new(@selected_sprint).call
         @qa_stats = RedmineGithub::QaGateStats.new(@selected_sprint).call
+
+        sprint_issue_ids   = @selected_sprint.fixed_issues.pluck(:id)
+        all_prs            = PullRequest.where(issue_id: sprint_issue_ids)
+        @pr_review_stats   = {
+          total:  all_prs.count,
+          open:   all_prs.where(merged_at: nil).count,
+          merged: all_prs.where.not(merged_at: nil).count,
+          open_prs: all_prs.where(merged_at: nil).select(:title, :url).to_a
+        }
         @metric_snapshot = MetricSnapshot.for_version(@selected_sprint).latest.first
         @integrity_warnings = DataIntegrityWarning.for_version(@selected_sprint).recent
         @sync_status = SystemSyncStatus.recent

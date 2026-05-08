@@ -25,12 +25,43 @@ module RedmineGithub
       blocker_priorities = IssuePriority.where(name: %w[High Immediate]).pluck(:id)
       blockers = issues.select { |i| !i.status.is_closed? && blocker_priorities.include?(i.priority_id) }
 
+      # DoD: tasks without a "clear" status are those still in the default "New" state
+      new_status_ids = IssueStatus.where(name: 'New').pluck(:id)
+      not_started    = issues.select { |i| new_status_ids.include?(i.status_id) }
+
+      # DoD: blockers that have had no update within the last 48 hours
+      stale_threshold = 48.hours.ago
+      stale_blockers  = blockers.select do |i|
+        last_update = i.updated_on || i.created_on
+        last_update && last_update < stale_threshold
+      end
+
       completion_rate = (closed.size.to_f / total * 100).round(1)
       bug_rate        = (bugs.size.to_f / total * 100).round(1)
       delay_rate      = closed.empty? ? 0.0 : (delayed.size.to_f / closed.size * 100).round(1)
-      avg_cycle_days  = cycles.empty? ? nil : (cycles.sum { |i| (i.closed_on.to_date - i.start_date).to_i } / cycles.size.to_f).round(1)
+      avg_cycle_days  = cycles.empty? ? nil : [(cycles.sum { |i| (i.closed_on.to_date - i.start_date).to_i } / cycles.size.to_f).round(1), 0].max
 
-      blockers_data = blockers.map { |b| { id: b.id, subject: b.subject, assignee: b.assigned_to&.name || 'Unassigned', created_on: b.created_on } }
+      blockers_data = blockers.map do |b|
+        {
+          id: b.id, subject: b.subject,
+          tracker: b.tracker.name, priority: b.priority.name,
+          status: b.status.name, assignee: b.assigned_to&.name || 'Unassigned',
+          created_on: b.created_on, updated_on: b.updated_on
+        }
+      end
+
+      team_load = issues
+        .group_by { |i| i.assigned_to&.name || 'Unassigned' }
+        .map do |name, member_issues|
+          {
+            name:    name,
+            total:   member_issues.size,
+            open:    member_issues.count { |i| !i.status.is_closed? },
+            closed:  member_issues.count { |i| i.status.is_closed? },
+            blocked: member_issues.count { |i| !i.status.is_closed? && blocker_priorities.include?(i.priority_id) }
+          }
+        end
+        .sort_by { |m| [-m[:blocked], -m[:open]] }
 
       {
         total:               total,
@@ -44,7 +75,10 @@ module RedmineGithub
         completion_ok:       completion_rate >= COMPLETION_THRESHOLD,
         bug_rate_ok:         bug_rate <= BUG_RATE_THRESHOLD,
         delay_rate_ok:       delay_rate <= DELAY_RATE_THRESHOLD,
-        blockers:            blockers_data
+        blockers:            blockers_data,
+        not_started:         not_started.map { |i| { id: i.id, subject: i.subject } },
+        stale_blockers:      stale_blockers.map { |i| { id: i.id, subject: i.subject, updated_on: i.updated_on || i.created_on } },
+        team_load:           team_load
       }
     end
 
@@ -69,7 +103,7 @@ module RedmineGithub
         total: 0, closed: 0, bugs: 0, delayed: 0,
         completion_rate: 0.0, bug_rate: 0.0, delay_rate: 0.0, avg_cycle_days: nil,
         completion_ok: false, bug_rate_ok: true, delay_rate_ok: true,
-        blockers: []
+        blockers: [], not_started: [], stale_blockers: [], team_load: []
       }
     end
 

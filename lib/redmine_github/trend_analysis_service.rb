@@ -29,7 +29,7 @@ module RedmineGithub
           name: sprint.name,
           effective_date: sprint.effective_date,
           completion_rate: stats[:completion_rate] || 0,
-          cycle_time: stats[:avg_cycle_time] || 0,
+          cycle_time: stats[:avg_cycle_days] || 0,
           bug_rate: stats[:bug_rate] || 0,
           closed_issues: stats[:closed] || 0,
           total_issues: stats[:total] || 0,

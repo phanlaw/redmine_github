@@ -25,10 +25,10 @@ RSpec.feature 'PM Dashboard', type: :feature do
                   priority: high_priority, fixed_version: sprint)
     end
 
-    it 'shows NOT READY banner' do
+    it 'shows release blockers panel' do
       visit project_pm_dashboard_path(project, sprint_id: sprint.id)
-      expect(page).to have_css '.pm-nogo'
-      expect(page).to have_text 'NOT READY'
+      expect(page).to have_css '.pm-release-blockers'
+      expect(page).to have_text 'Release blocked'
     end
 
     it 'shows sprint metrics table' do
@@ -49,10 +49,10 @@ RSpec.feature 'PM Dashboard', type: :feature do
       ReleaseApproval.create!(version: sprint, role: 'PM', status: 'pending', user: admin)
     end
 
-    it 'shows AWAITING APPROVAL when metrics are healthy but approvals pending' do
+    it 'shows release blockers panel when approvals are pending' do
       visit project_pm_dashboard_path(project, sprint_id: sprint.id)
-      expect(page).to have_css '.pm-awaiting'
-      expect(page).to have_text 'AWAITING APPROVAL'
+      expect(page).to have_css '.pm-release-blockers'
+      expect(page).to have_text 'QA sign-off required'
     end
 
     it 'shows sprint metrics with passing rates' do
@@ -67,7 +67,7 @@ RSpec.feature 'PM Dashboard', type: :feature do
       # Step 1: QA approval
       click_button 'Approve'
       expect(page).to have_text 'QA approval recorded'
-      expect(page).to have_css '.pm-awaiting'
+      expect(page).to have_css '.pm-release-blockers'
 
       # Step 2: PM approval
       click_button 'Approve Release'
@@ -75,7 +75,7 @@ RSpec.feature 'PM Dashboard', type: :feature do
 
       # Step 3: Fully approved
       expect(page).to have_css '.pm-go'
-      expect(page).to have_text 'READY FOR PRODUCTION'
+      expect(page).to have_text 'Ready for Production'
     end
 
     it 'shows RISKY banner and records QA rejection' do
@@ -83,7 +83,7 @@ RSpec.feature 'PM Dashboard', type: :feature do
 
       click_button 'Reject'
       expect(page).to have_text 'QA approval rejected'
-      expect(page).to have_css '.pm-risky'
+      expect(page).to have_css '.pm-release-rejected'
     end
   end
 

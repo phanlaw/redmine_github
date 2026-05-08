@@ -212,76 +212,44 @@ a.icon-pr:hover {
 .qa-test-actions { margin-top: 0.5em; display: flex; flex-wrap: wrap; gap: 0.5em; align-items: center; }
 
 /* ── PM Selection bar ─────────────────────────────────────── */
-.pm-selection-bar {
-  background: #f6f8fa;
-  border: 1px solid #d0d7de;
-  border-radius: 6px;
-  padding: 1em;
-  margin-bottom: 1.5em;
-  display: flex;
-  gap: 2em;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.pm-selection-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5em;
-}
-.pm-selection-group label {
-  font-size: 0.85em;
-  font-weight: 600;
-  color: #57606a;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.pm-selection-group select {
-  padding: 6px 12px;
-  border: 1px solid #d0d7de;
-  border-radius: 6px;
-  font-size: 0.9em;
-  background: #fff;
-  cursor: pointer;
-  min-width: 180px;
-}
-.pm-selection-group select:focus {
-  outline: none;
-  border-color: #0969da;
-  box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
-}
 
-/* ── PM Decision Banner ─────────────────────────────────────── */
-.pm-decision {
-  border-left: 6px solid #d0d7de;
-  padding: 0.75em 1em;
+/* ── PM Decision / Release Gate ─────────────────────────────────────── */
+.pm-go {
+  border-left: 4px solid #2da44e;
+  padding: 0.5em 0.8em;
   margin-bottom: 1em;
-  display: flex;
-  align-items: baseline;
-  gap: 1em;
-  flex-wrap: wrap;
+  color: #116329;
 }
-.pm-go      { border-left-color: #2da44e; }
-.pm-awaiting { border-left-color: #bf8700; }
-.pm-risky   { border-left-color: #f59e0b; }
-.pm-nogo    { border-left-color: #cf222e; }
-.pm-decision-verdict {
-  font-weight: 700;
-  font-size: 1.05em;
+
+.pm-release-blockers {
+  border-left: 4px solid #cf222e;
+  padding: 0.5em 0.8em;
+  margin-bottom: 1em;
 }
-.pm-go .pm-decision-verdict      { color: #116329; }
-.pm-awaiting .pm-decision-verdict { color: #856404; }
-.pm-risky .pm-decision-verdict   { color: #92400e; }
-.pm-nogo .pm-decision-verdict    { color: #82071e; }
-.pm-decision-meta { font-size: 0.9em; color: #57606a; }
+.pm-release-blocked  { color: #82071e; }
+.pm-release-risky    { color: #92400e; }
+.pm-release-rejected { color: #82071e; }
+.pm-release-blocker-list { margin: 0.4em 0 0 1em; padding: 0; }
+.pm-release-blocker-list li { margin-bottom: 0.3em; }
 
-/* ── PM Action list ─────────────────────────────────────── */
-.pm-actions { margin: 0 0 1em 1.2em; }
-.pm-actions li { margin-bottom: 0.4em; }
-.pm-target { font-size: 0.82em; color: #57606a; margin-left: 0.4em; }
+/* ── PM inline status helpers ─────────────────────────────────────── */
+.pm-ok   { color: #116329; font-weight: 600; }
+.pm-warn { color: #92400e; font-weight: 600; }
+.pm-crit { color: #82071e; font-weight: 600; }
+.pm-na   { color: #57606a; }
+.pm-meta { color: #57606a; font-size: 0.9em; }
 
-/* ── PM table helpers ─────────────────────────────────────── */
-.pm-fail-cell { font-weight: 700; }
-.pm-duration  { color: #856404; font-weight: 600; }
+/* ── PM Definition of Done checklist ─────────────────────── */
+.pm-dod-table td { vertical-align: top; }
+.pm-dod-table .pm-dod-state { white-space: nowrap; }
+
+.pm-dod-pass  td:first-child { border-left: 3px solid #2da44e; }
+.pm-dod-fail  td:first-child { border-left: 3px solid #cf222e; }
+.pm-dod-manual td:first-child,
+.pm-dod-unknown td:first-child { border-left: 3px solid #bf8700; }
+
+.pm-dod-items { margin: 0.3em 0 0 1em; padding: 0; font-size: 0.87em; }
+.pm-dod-items li { margin-bottom: 0.2em; }
 
 /* ── PM audit list ─────────────────────────────────────── */
 .pm-audit { margin: 0 0 1em 1.2em; }
